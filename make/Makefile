@@ -1,6 +1,7 @@
 ##############################################################################
 BUILD = build
 BIN = dgw
+PORT = /dev/serial/by-id/usb-TinyUSB_TinyUSB_Device_123456-if00
 
 ##############################################################################
 .PHONY: all directory clean size
@@ -73,7 +74,7 @@ $(BUILD)/$(BIN).bin: $(BUILD)/$(BIN).elf
 
 program: $(BUILD)/$(BIN).hex
 	@echo PROGRAM $^
-	./force_reset.py --uf2 /dev/serial/by-id/usb-TinyUSB_TinyUSB_Device_123456-if00
+	./force_reset.py --uf2 $(PORT)
 	./uf2conv.py $^
 
 %.o:
