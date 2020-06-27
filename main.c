@@ -37,8 +37,8 @@
 #include "nvm_data.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
-#include "htu21.h"
 #include "rgb.h"
+#include "spi_master.h"
 
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 17);
@@ -282,6 +282,41 @@ uint8_t cdc_task(char line[], uint8_t max)
 		return 0;
 }
 
+void print_keys(uint8_t keyarray[], uint8_t num) 
+{
+	if (!tud_cdc_connected() && tud_cdc_available())
+		return;
+	tud_cdc_write_str("0b");
+	for (uint8_t a = 0; a < num; a++) {
+		for (uint8_t i = 0; i < 8; i++) {
+			tud_cdc_write_char((keyarray[a] & (1 << i)) ? '1' : '0');
+		}
+		tud_cdc_write_char(' ');
+	}
+	tud_cdc_write_char('\n');
+}
+
+void shift_task(void) {
+	static uint32_t time;
+	static uint8_t prev_keys[2];
+	uint8_t keys[2];
+
+	if ((millis() - time) < 10)
+		return;
+	time = millis();
+
+	spi_ss(1);
+	keys[0] = spi_write_byte(0);
+	keys[1] = spi_write_byte(0);
+	spi_ss(0);
+
+	if (keys[0] != prev_keys[0] || keys[1] != prev_keys[1]) {
+		prev_keys[0] = keys[0];
+		prev_keys[1] = keys[1];
+		print_keys(keys, 2);
+	}
+}
+
 //-----------------------------------------------------------------------------
 int main(void)
 {
@@ -289,8 +324,8 @@ int main(void)
 	usb_setup();
 	tusb_init();
 	timer_init();
-	htu21_init();
 	rgb_init();
+	spi_init(1000000, 0);
 
 	HAL_GPIO_LED1_out();
 	HAL_GPIO_A5_out();
@@ -299,46 +334,19 @@ int main(void)
 	led.red = 0xFF;
 	led.blue = 0x0;
 	led.green = 0xFF;
-	led.bright = 0x06;
+	led.bright = 0x07;
 	rgb_update(&led, 1);
 
 	char s[25];
-	uint32_t temp;
-	uint32_t minutetick = millis();
 	uint32_t tenthmintick = millis();
 	uint8_t ledpos = 0;
 
 	while (1)
 	{
 
-		if ((millis() - tenthmintick) >= 100) {
-			tenthmintick = millis();
-			rgb_wheel(&led, ledpos);
-			rgb_update(&led, 1);
-			ledpos += 4;
-		}
-
-		/*
-		if ((millis() - minutetick) >= 10000) {
-			minutetick = millis();
-			temp = htu21_readtemp();
-			itoa(temp, s, 10);
-			if (tud_cdc_connected()) {
-				tud_cdc_write_str("TempX100: ");
-				tud_cdc_write_str(s);
-				tud_cdc_write_char('\t');
-			}
-			temp = htu21_readhumidity();
-			itoa(temp, s, 10);
-			if (tud_cdc_connected()) {
-				tud_cdc_write_str("HumX100: ");
-				tud_cdc_write_str(s);
-				tud_cdc_write_char('\n');
-			}
-		}
-		*/
-
 		tud_task();
+		shift_task();
+
 		if (cdc_task(s, 25)) {
 			if (s[0] == 'b') {
 				uint32_t ms = atoi((const char *)&s[1]);
@@ -346,6 +354,13 @@ int main(void)
 					timer_ms(ms);
 				}
 			}
+		}
+
+		if ((millis() - tenthmintick) >= 50) {
+			tenthmintick = millis();
+			rgb_wheel(&led, ledpos);
+			rgb_update(&led, 1);
+			ledpos += 4;
 		}
 	}
 

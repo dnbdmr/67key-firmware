@@ -35,15 +35,15 @@
 #include "spi_master.h"
 
 /*- Definitions -------------------------------------------------------------*/
-HAL_GPIO_PIN(MISO,            A, 4);
-HAL_GPIO_PIN(MOSI,            A, 6);
-HAL_GPIO_PIN(SCLK,            A, 7);
-HAL_GPIO_PIN(SS,              A, 5);
-#define SPI_SERCOM            SERCOM0
+HAL_GPIO_PIN(MISO,            A, 12);
+HAL_GPIO_PIN(MOSI,            B, 10);
+HAL_GPIO_PIN(SCLK,            B, 11);
+HAL_GPIO_PIN(SS,              B, 2);
+#define SPI_SERCOM            SERCOM4
 #define SPI_SERCOM_PMUX       PORT_PMUX_PMUXE_D_Val
-#define SPI_SERCOM_GCLK_ID    SERCOM0_GCLK_ID_CORE
+#define SPI_SERCOM_GCLK_ID    SERCOM4_GCLK_ID_CORE
 #define SPI_SERCOM_CLK_GEN    0
-#define SPI_SERCOM_APBCMASK   PM_APBCMASK_SERCOM0
+#define SPI_SERCOM_APBCMASK   PM_APBCMASK_SERCOM4
 
 /*- Implementations ---------------------------------------------------------*/
 
@@ -70,7 +70,7 @@ int spi_init(int freq, int mode)
   HAL_GPIO_SCLK_pmuxen(SPI_SERCOM_PMUX);
 
   HAL_GPIO_SS_out();
-  HAL_GPIO_SS_set();
+  HAL_GPIO_SS_clr();
 
   PM->APBCMASK.reg |= SPI_SERCOM_APBCMASK;
 
@@ -96,7 +96,7 @@ int spi_init(int freq, int mode)
 //-----------------------------------------------------------------------------
 void spi_ss(int state)
 {
-  while (!SPI_SERCOM->SPI.INTFLAG.bit.DRE);
+  //while (!SPI_SERCOM->SPI.INTFLAG.bit.DRE);
   HAL_GPIO_SS_write(state);
 }
 

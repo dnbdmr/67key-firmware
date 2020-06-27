@@ -43,10 +43,8 @@ SRCS += \
   ../tinyusb/src/portable/microchip/samd/dcd_samd.c \
   ../tinyusb/src/class/cdc/cdc_device.c \
   ../usb_descriptors.c \
-  ../htu21.c \
   ../rgb.c \
-  ../i2c_master.c \
-  ../adafruit_ptc.c \
+  ../spi_master.c \
   ../adc.c
 
 DEFINES += \
