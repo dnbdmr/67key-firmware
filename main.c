@@ -90,6 +90,11 @@ void TC3_Handler(void)
 }
 
 //-----------------------------------------------------------------------------
+static void timer_ms(uint32_t ms) {
+	TC3->COUNT16.CC[0].reg = (F_CPU / 1000ul / 1024) * ms;
+	TC3->COUNT16.COUNT.reg = 0;
+}
+
 static void timer_init(void)
 {
 	PM->APBCMASK.reg |= PM_APBCMASK_TC3;
@@ -218,6 +223,7 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 
 //-----------------------------------------------------------------------------
 // Invoked when CDC interface received data from host
+/*
 void tud_cdc_rx_cb(uint8_t itf)
 {
 	(void) itf;
@@ -241,6 +247,7 @@ void tud_cdc_rx_cb(uint8_t itf)
 		}
 	}
 }
+*/
 
 /* Retrieves full line from cdc, returns true when found */
 uint8_t cdc_task(char line[], uint8_t max)
@@ -303,6 +310,7 @@ int main(void)
 
 	while (1)
 	{
+
 		if ((millis() - tenthmintick) >= 100) {
 			tenthmintick = millis();
 			rgb_wheel(&led, ledpos);
@@ -310,6 +318,7 @@ int main(void)
 			ledpos += 4;
 		}
 
+		/*
 		if ((millis() - minutetick) >= 10000) {
 			minutetick = millis();
 			temp = htu21_readtemp();
@@ -327,9 +336,17 @@ int main(void)
 				tud_cdc_write_char('\n');
 			}
 		}
+		*/
 
 		tud_task();
-		cdc_task(s, 25);
+		if (cdc_task(s, 25)) {
+			if (s[0] == 'b') {
+				uint32_t ms = atoi((const char *)&s[1]);
+				if (ms > 0 && ms < 50000) {
+					timer_ms(ms);
+				}
+			}
+		}
 	}
 
 	return 0;
