@@ -243,7 +243,7 @@ void tud_cdc_rx_cb(uint8_t itf)
 }
 
 /* Retrieves full line from cdc, returns true when found */
-uint8_t cdc_task(uint8_t line[], uint8_t max)
+uint8_t cdc_task(char line[], uint8_t max)
 {
 	static uint8_t pos = 0;
 	uint8_t success = 0;
@@ -295,7 +295,7 @@ int main(void)
 	led.bright = 0x06;
 	rgb_update(&led, 1);
 
-	uint8_t s[25];
+	char s[25];
 	uint32_t temp;
 	uint32_t minutetick = millis();
 	uint32_t tenthmintick = millis();
