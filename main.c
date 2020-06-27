@@ -67,6 +67,16 @@ uint32_t millis(void)
 	return m;
 }
 
+void delay_us(uint32_t us)
+{
+	if (!us || (us >= SysTick->LOAD))
+		return;
+	if(!(SysTick->CTRL & SysTick_CTRL_ENABLE_Msk))
+		return;
+	us = F_CPU/1000000*us;
+	uint32_t time = SysTick->VAL;
+	while ((time - SysTick->VAL) < us);
+}
 
 
 //-----------------------------------------------------------------------------
@@ -232,13 +242,39 @@ void tud_cdc_rx_cb(uint8_t itf)
 	}
 }
 
-void cdc_task(void)
+/* Retrieves full line from cdc, returns true when found */
+uint8_t cdc_task(uint8_t line[], uint8_t max)
 {
-	if ( tud_cdc_connected() )
-	{
-		tud_cdc_write_flush(); // Freeze without this
+	static uint8_t pos = 0;
+	uint8_t success = 0;
+
+	if (tud_cdc_connected() && tud_cdc_available()) {	// connected and there are data available
+		uint8_t buf[64];
+		uint8_t count = tud_cdc_read(buf, sizeof(buf));
+
+		for (uint8_t i=0; i<count; i++) {
+			tud_cdc_write_char(buf[i]);
+			if (pos < max-1) {
+				if ((line[pos] = buf[i]) == '\n') {
+					success = 1;
+				}
+				pos++;
+			}
+		}
 	}
+
+	tud_cdc_write_flush(); // Freeze without this
+
+	if (success) {
+		success = 0;
+		line[pos] = '\0';
+		pos = 0;
+		return 1;
+	}
+	else
+		return 0;
 }
+
 //-----------------------------------------------------------------------------
 int main(void)
 {
@@ -259,7 +295,7 @@ int main(void)
 	led.bright = 0x06;
 	rgb_update(&led, 1);
 
-	char s[25];
+	uint8_t s[25];
 	uint32_t temp;
 	uint32_t minutetick = millis();
 	uint32_t tenthmintick = millis();
@@ -293,7 +329,7 @@ int main(void)
 		}
 
 		tud_task();
-		cdc_task();
+		cdc_task(s, 25);
 	}
 
 	return 0;
