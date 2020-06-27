@@ -27,12 +27,6 @@ if args.caterina:
         ser.close()
         sleep(1)
 
-        while not os.path.exists(args.port[0]):
-            if args.verbose: print('Waiting for %s to come back' % args.port[0])
-            sleep(1)
-
-        if args.verbose: print('%s has come back after reset' % args.port[0])
-
 elif args.uf2:
         if args.verbose: print('Forcing reset using 1200bps open/close on port %s' % args.port[0])
         ser = serial.Serial(args.port[0], 57600)

@@ -1,6 +1,6 @@
 ##############################################################################
 BUILD = build
-BIN = dgw
+BIN = 67key
 PORT = /dev/serial/by-id/usb-TinyUSB_TinyUSB_Device_123456-if00
 
 ##############################################################################
@@ -76,6 +76,11 @@ program: $(BUILD)/$(BIN).hex
 	@echo PROGRAM $^
 	./force_reset.py --uf2 $(PORT)
 	./uf2conv.py $^
+
+bossa: $(BUILD)/$(BIN).bin
+	@echo BOSSA @^
+	./force_reset.py --caterina $(PORT)
+	~/.arduino15/packages/arduino/tools/bossac/1.7.0/bossac -e -w -v -R $^
 
 %.o:
 	@echo CC $@
