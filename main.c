@@ -43,8 +43,6 @@
 
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 17);
-HAL_GPIO_PIN(A5,	B, 2);
-HAL_GPIO_PIN(D5,	A, 15);
 
 RGB_type led;
 
@@ -183,7 +181,6 @@ void tud_suspend_cb(bool remote_wakeup_en)
 	(void) remote_wakeup_en;
 	rgb_zero(1);
 	HAL_GPIO_LED1_in();
-	HAL_GPIO_A5_in();
 	SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk); //disable systick
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk << SCB_SCR_SLEEPDEEP_Pos;
 	__WFI();
@@ -194,7 +191,6 @@ void tud_resume_cb(void)
 {
 	rgb_update(&led, 1);
 	HAL_GPIO_LED1_out();
-	HAL_GPIO_A5_out();
 	SysTick_Config(48000); //systick at 1ms
 }
 
@@ -228,7 +224,6 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 void tud_cdc_rx_cb(uint8_t itf)
 {
 	(void) itf;
-	HAL_GPIO_A5_toggle();
 	//tud_cdc_write_str("Stop That!!\n");
 	//tud_cdc_read_flush();
 
@@ -294,8 +289,6 @@ int main(void)
 	spi_init(1000000, 0);
 
 	HAL_GPIO_LED1_out();
-	HAL_GPIO_A5_out();
-	HAL_GPIO_D5_out();
 
 	led.red = 0xFF;
 	led.blue = 0x0;
