@@ -298,7 +298,7 @@ void hid_task(void)
   start_ms += interval_ms;
 
   //uint32_t const btn = board_button_read();
-  uint32_t const btn = 0;
+  uint32_t const btn = shift_task();
 
   // Remote wakeup
   if ( tud_suspended() && btn )
@@ -319,7 +319,8 @@ void hid_task(void)
       tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, delta, delta, 0, 0);
 
       // delay a bit before attempt to send keyboard report
-      delay_ms(10);
+	  while( !tud_hid_ready() )
+		  tud_task();
     }
   }
 
@@ -331,6 +332,8 @@ void hid_task(void)
 
     if ( btn )
     {
+	  led.green = 0xFF;
+	  rgb_update(&led, 1);
       uint8_t keycode[6] = { 0 };
       keycode[0] = HID_KEY_A;
 
@@ -397,7 +400,8 @@ int main(void)
 	{
 
 		tud_task();
-		shift_task();
+		hid_task();
+		//shift_task();
 
 		if (cdc_task(s, 25)) {
 			if (s[0] == 'b') {

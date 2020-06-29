@@ -8,6 +8,6 @@
 
 void print_keys(uint8_t keyarray[], uint8_t num);
 
-void shift_task(void);
+uint8_t shift_task(void);
 
 #endif // _MATRIX_H_

@@ -21,12 +21,12 @@ void print_keys(uint8_t keyarray[], uint8_t num)
 	tud_cdc_write_char('\n');
 }
 
-void shift_task(void) {
+uint8_t shift_task(void) {
 	static uint32_t time;
 	uint8_t keys[2];
 
 	if ((millis() - time) < 10)
-		return;
+		return 0;
 	time = millis();
 
 	spi_ss(1);
@@ -38,5 +38,6 @@ void shift_task(void) {
 		prev_keys[0] = keys[0];
 		prev_keys[1] = keys[1];
 		print_keys(keys, 2);
+		return 1;
 	}
 }
