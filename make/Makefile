@@ -45,7 +45,8 @@ SRCS += \
   ../usb_descriptors.c \
   ../rgb.c \
   ../spi_master.c \
-  ../adc.c
+  ../adc.c \
+  ../matrix.c
 
 DEFINES += \
   -D__SAMD21G18A__ \
