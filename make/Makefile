@@ -42,6 +42,7 @@ SRCS += \
   ../tinyusb/src/device/usbd_control.c \
   ../tinyusb/src/portable/microchip/samd/dcd_samd.c \
   ../tinyusb/src/class/cdc/cdc_device.c \
+  ../tinyusb/src/class/hid/hid_device.c \
   ../usb_descriptors.c \
   ../rgb.c \
   ../spi_master.c \
