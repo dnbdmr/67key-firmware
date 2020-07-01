@@ -301,14 +301,6 @@ void hid_task(void)
   //uint32_t const btn = board_button_read();
   uint32_t const btn = shift_task();
 
-  // Remote wakeup
-  if ( tud_suspended() && btn )
-  {
-    // Wake up host if we are in suspend mode
-    // and REMOTE_WAKEUP feature is enabled by host
-    tud_remote_wakeup();
-  }
-
   /*------------- Mouse -------------*/
   if ( tud_hid_ready() )
   {
@@ -328,23 +320,12 @@ void hid_task(void)
   /*------------- Keyboard -------------*/
   if ( tud_hid_ready() )
   {
-    // use to avoid send multiple consecutive zero report for keyboard
-    static bool has_key = false;
-
     if ( btn )
     {
       uint8_t keycode[6] = { 0 };
-      //keycode[0] = HID_KEY_A;
 	  read_keys(keycode);
 
       tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
-
-      has_key = true;
-    }else
-    {
-      // send empty key report if previously has key pressed
-      if (has_key) tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, NULL);
-      has_key = false;
     }
   }
 }
