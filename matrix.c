@@ -5,7 +5,7 @@
 
 extern uint32_t millis(void);
 
-static uint8_t prev_keys[MATRIX_REG_NUM];
+uint8_t prev_keys[MATRIX_REG_COUNT];
 
 void print_keys(uint8_t keyarray[], uint8_t num) 
 {
@@ -37,7 +37,8 @@ uint8_t shift_task(void) {
 	if (keys[0] != prev_keys[0] || keys[1] != prev_keys[1]) {
 		prev_keys[0] = keys[0];
 		prev_keys[1] = keys[1];
-		print_keys(keys, 2);
+		//print_keys(keys, 2);
 		return 1;
 	}
+	return 0;
 }

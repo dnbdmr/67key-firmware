@@ -40,6 +40,7 @@
 #include "rgb.h"
 #include "spi_master.h"
 #include "matrix.h"
+#include "keymap.h"
 
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 17);
@@ -332,10 +333,9 @@ void hid_task(void)
 
     if ( btn )
     {
-	  led.green = 0xFF;
-	  rgb_update(&led, 1);
       uint8_t keycode[6] = { 0 };
-      keycode[0] = HID_KEY_A;
+      //keycode[0] = HID_KEY_A;
+	  read_keys(keycode);
 
       tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
 

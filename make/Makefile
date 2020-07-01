@@ -47,7 +47,8 @@ SRCS += \
   ../rgb.c \
   ../spi_master.c \
   ../adc.c \
-  ../matrix.c
+  ../matrix.c \
+  ../keymap.c
 
 DEFINES += \
   -D__SAMD21G18A__ \
