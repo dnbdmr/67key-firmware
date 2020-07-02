@@ -35,15 +35,15 @@
 #include "spi_master.h"
 
 /*- Definitions -------------------------------------------------------------*/
-HAL_GPIO_PIN(MISO,            A, 12);
-HAL_GPIO_PIN(MOSI,            B, 10);
-HAL_GPIO_PIN(SCLK,            B, 11);
-HAL_GPIO_PIN(SS,              B, 2);
-#define SPI_SERCOM            SERCOM4
-#define SPI_SERCOM_PMUX       PORT_PMUX_PMUXE_D_Val
-#define SPI_SERCOM_GCLK_ID    SERCOM4_GCLK_ID_CORE
+//HAL_GPIO_PIN(MOSI,            A, 11); // Data out not needed
+HAL_GPIO_PIN(MISO,            A, 8);	// SC0.0
+HAL_GPIO_PIN(SCLK,            A, 9);	// SC0.1
+HAL_GPIO_PIN(SS,              A, 10);
+#define SPI_SERCOM            SERCOM0
+#define SPI_SERCOM_PMUX       PORT_PMUX_PMUXE_C_Val
+#define SPI_SERCOM_GCLK_ID    SERCOM0_GCLK_ID_CORE
 #define SPI_SERCOM_CLK_GEN    0
-#define SPI_SERCOM_APBCMASK   PM_APBCMASK_SERCOM4
+#define SPI_SERCOM_APBCMASK   PM_APBCMASK_SERCOM0
 
 /*- Implementations ---------------------------------------------------------*/
 
@@ -63,8 +63,9 @@ int spi_init(int freq, int mode)
   HAL_GPIO_MISO_in();
   HAL_GPIO_MISO_pmuxen(SPI_SERCOM_PMUX);
 
-  HAL_GPIO_MOSI_out();
-  HAL_GPIO_MOSI_pmuxen(SPI_SERCOM_PMUX);
+  // Data out not needed
+  //HAL_GPIO_MOSI_out();
+  //HAL_GPIO_MOSI_pmuxen(SPI_SERCOM_PMUX);
 
   HAL_GPIO_SCLK_out();
   HAL_GPIO_SCLK_pmuxen(SPI_SERCOM_PMUX);
@@ -85,7 +86,7 @@ int spi_init(int freq, int mode)
   SPI_SERCOM->SPI.BAUD.reg = baud;
 
   SPI_SERCOM->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_ENABLE |
-      SERCOM_SPI_CTRLA_DIPO(0) | SERCOM_SPI_CTRLA_DOPO(1) |
+      SERCOM_SPI_CTRLA_DIPO(0) | SERCOM_SPI_CTRLA_DOPO(2) |
       ((mode & 1) ? SERCOM_SPI_CTRLA_CPHA : 0) |
       ((mode & 2) ? SERCOM_SPI_CTRLA_CPOL : 0) |
       SERCOM_SPI_CTRLA_MODE_SPI_MASTER;
