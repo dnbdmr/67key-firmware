@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define MATRIX_REG_COUNT	2
-#define MATRIX_REG_INVERT	(1<<0)
+#define MATRIX_REG_COUNT	9
+#define MATRIX_REG_INVERT	(1<<1)
 
 void print_keys(uint8_t keyarray[], uint8_t num);
 

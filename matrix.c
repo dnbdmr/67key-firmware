@@ -25,18 +25,22 @@ uint8_t shift_task(void) {
 	static uint32_t time;
 	uint8_t keys[2];
 
+	/*
 	if ((millis() - time) < 10)
 		return 0;
 	time = millis();
+	*/
 
 	spi_ss(1);
-	keys[0] = spi_write_byte(0);
-	keys[1] = spi_write_byte(0);
+	for (int i = 0; i < MATRIX_REG_COUNT; i++) {
+		keys[i] = spi_write_byte(0);
+		if (MATRIX_REG_INVERT & (1<<i))
+			keys[i] = ~keys[i];
+	}
 	spi_ss(0);
 
-	if (keys[0] != prev_keys[0] || keys[1] != prev_keys[1]) {
-		prev_keys[0] = keys[0];
-		prev_keys[1] = keys[1];
+	if (memcmp(prev_keys, keys, sizeof(prev_keys))) {
+		memcpy(prev_keys, keys, sizeof(prev_keys));
 		//print_keys(keys, 2);
 		return 1;
 	}

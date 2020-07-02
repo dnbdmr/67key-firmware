@@ -2,14 +2,14 @@
 #include "matrix.h"
 #include "tusb.h"
 
-#define FN_KEY	prev_keys[0] & (1<<7)
+#define FN_KEY	prev_keys[1] & (1<<6)
 
 extern uint8_t prev_keys[MATRIX_REG_COUNT];
 
 uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] = 
 {
 	{	//Layer 0
-		{
+		{	//Register 0
 			HID_KEY_D,
 			HID_KEY_C,
 			HID_KEY_B,
@@ -18,7 +18,7 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0 },
-		{
+		{	//Register 1
 			HID_KEY_Z,
 			HID_KEY_Y,
 			HID_KEY_X,
@@ -27,9 +27,79 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0 }
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 3
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 4
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 5
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 6
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 7
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 8
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
 	},
 	{	//Layer 1
-		{
+		{	// Register 0
+
 			0,
 			0,
 			0,
@@ -38,7 +108,78 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0 },
-		{
+		{	// Register 1
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 2
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 3
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 4
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 5
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 6
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 7
+
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+		{	// Register 8
+
 			0,
 			0,
 			0,
