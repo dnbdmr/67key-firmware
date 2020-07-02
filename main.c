@@ -43,7 +43,7 @@
 #include "keymap.h"
 
 /*- Definitions -------------------------------------------------------------*/
-HAL_GPIO_PIN(LED1,	A, 17);
+HAL_GPIO_PIN(LED1,	A, 22);
 
 RGB_type led;
 
@@ -382,7 +382,6 @@ int main(void)
 
 		tud_task();
 		hid_task();
-		//shift_task();
 
 		if (cdc_task(s, 25)) {
 			if (s[0] == 'b') {
