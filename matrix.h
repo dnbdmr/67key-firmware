@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define MATRIX_REG_COUNT	9
-#define MATRIX_REG_INVERT	(1<<1)
+#define MATRIX_REG_INVERT	((1<<1) | (1<<3) | (1<<5) | (1<<7))
 
 void print_keys(uint8_t keyarray[], uint8_t num);
 

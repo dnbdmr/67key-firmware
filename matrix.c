@@ -15,6 +15,10 @@ void print_keys(uint8_t keyarray[], uint8_t num)
 	for (uint8_t a = 0; a < num; a++) {
 		for (uint8_t i = 0; i < 8; i++) {
 			tud_cdc_write_char((keyarray[a] & (1 << i)) ? '1' : '0');
+			while (tud_cdc_write_available() < 12) {
+				tud_cdc_write_flush();
+				tud_task();
+			}
 		}
 		tud_cdc_write_char(' ');
 	}
@@ -41,7 +45,7 @@ uint8_t shift_task(void) {
 
 	if (memcmp(prev_keys, keys, sizeof(prev_keys))) {
 		memcpy(prev_keys, keys, sizeof(prev_keys));
-		//print_keys(keys, 2);
+		//print_keys(keys, MATRIX_REG_COUNT);
 		return 1;
 	}
 	return 0;
