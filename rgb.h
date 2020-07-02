@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+#define RGB_NUM	2
+
 typedef struct {
     uint8_t bright;
     uint8_t blue;

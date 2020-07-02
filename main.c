@@ -45,7 +45,7 @@
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 22);
 
-RGB_type led;
+RGB_type led[2];
 
 /*- Implementations ---------------------------------------------------------*/
 
@@ -196,7 +196,7 @@ void tud_suspend_cb(bool remote_wakeup_en)
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
-	rgb_update(&led, 1);
+	rgb_update(led, 2);
 	HAL_GPIO_LED1_out();
 	SysTick_Config(48000); //systick at 1ms
 }
@@ -367,11 +367,15 @@ int main(void)
 
 	HAL_GPIO_LED1_out();
 
-	led.red = 0xFF;
-	led.blue = 0x0;
-	led.green = 0xFF;
-	led.bright = 0x07;
-	rgb_update(&led, 1);
+	led[0].red = 0xFF;
+	led[0].blue = 0x0;
+	led[0].green = 0x0;
+	led[0].bright = 0x02;
+	led[1].red = 0xFF;
+	led[1].blue = 0x0;
+	led[1].green = 0xFF;
+	led[1].bright = 0x05;
+	rgb_update(led, 2);
 
 	char s[25];
 	uint32_t tenthmintick = millis();
@@ -394,8 +398,8 @@ int main(void)
 
 		if ((millis() - tenthmintick) >= 50) {
 			tenthmintick = millis();
-			rgb_wheel(&led, ledpos);
-			rgb_update(&led, 1);
+			rgb_wheel(&led[1], ledpos);
+			rgb_update(led, 2);
 			ledpos += 4;
 		}
 	}
