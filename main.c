@@ -41,6 +41,7 @@
 #include "spi_master.h"
 #include "matrix.h"
 #include "keymap.h"
+#include "config.h"
 
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 22);
@@ -335,13 +336,15 @@ void hid_task(void)
 	  read_keys(keycode);
 	  read_modifiers(&modifiers);
 
-	  tud_cdc_write_str("Mods: ");
-	  cdc_write_num(modifiers, 2);
-	  tud_cdc_write_str("Codes:\n");
-	  for(uint8_t i = 0; i < 6; i++) {
-		  cdc_write_num(keycode[i], 10);
+	  if (config.debug) {
+		  tud_cdc_write_str("Mods: ");
+		  cdc_write_num(modifiers, 2);
+		  tud_cdc_write_str("Codes:\n");
+		  for(uint8_t i = 0; i < 6; i++) {
+			  cdc_write_num(keycode[i], 10);
+		  }
+		  tud_cdc_write_char('\n');
 	  }
-	  tud_cdc_write_char('\n');
 
       tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
     }
@@ -382,6 +385,8 @@ int main(void)
 	timer_init();
 	rgb_init();
 	spi_init(1000000, 0);
+	config_init();
+
 
 	HAL_GPIO_LED1_out();
 
@@ -411,6 +416,9 @@ int main(void)
 				if (ms > 0 && ms < 50000) {
 					timer_ms(ms);
 				}
+			} else if (s[0] == 'd') {
+				config.debug = !config.debug;
+				cdc_write_num(config.debug, 10);
 			}
 		}
 

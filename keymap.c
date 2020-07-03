@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "matrix.h"
+#include "config.h"
 #include "tusb.h"
 
 #define FN_KEY	prev_keys[1] & (1<<6)

@@ -2,7 +2,6 @@
 BUILD = build
 BIN = 67key
 PORT = /dev/serial/by-id/usb-TinyUSB_TinyUSB_Device_123456-if00
-
 ##############################################################################
 .PHONY: all directory clean size
 
@@ -42,6 +41,7 @@ SRCS += \
   ../rgb.c \
   ../spi_master.c \
   ../adc.c \
+  ../config.c \
   ../matrix.c \
   ../keymap.c
 

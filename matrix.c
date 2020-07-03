@@ -2,6 +2,7 @@
 #include <string.h>
 #include "spi_master.h"
 #include "tusb.h"
+#include "config.h"
 
 extern uint32_t millis(void);
 
@@ -26,10 +27,10 @@ void print_keys(uint8_t keyarray[], uint8_t num)
 }
 
 uint8_t shift_task(void) {
-	static uint32_t time;
-	uint8_t keys[2];
+	uint8_t keys[MATRIX_REG_COUNT];
 
 	/*
+	static uint32_t time;
 	if ((millis() - time) < 10)
 		return 0;
 	time = millis();
@@ -45,7 +46,8 @@ uint8_t shift_task(void) {
 
 	if (memcmp(prev_keys, keys, sizeof(prev_keys))) {
 		memcpy(prev_keys, keys, sizeof(prev_keys));
-		//print_keys(keys, MATRIX_REG_COUNT);
+		if (config.debug)
+			print_keys(keys, MATRIX_REG_COUNT);
 		return 1;
 	}
 	return 0;
