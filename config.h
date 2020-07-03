@@ -5,6 +5,9 @@
 
 typedef struct config_tag {
 	uint8_t debug;
+	uint8_t invertx;
+	uint8_t inverty;
+	uint8_t swapxy;
 } config_type;
 
 extern struct config_tag config;

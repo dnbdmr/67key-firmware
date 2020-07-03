@@ -42,6 +42,7 @@
 #include "matrix.h"
 #include "keymap.h"
 #include "config.h"
+#include "trackpoint.h"
 
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 22);
@@ -299,7 +300,7 @@ void cdc_write_num(int num, uint8_t radix)
 
 void hid_task(void)
 {
-  // Poll every 10ms
+  // Poll every 10ms TODO: change this?
   const uint32_t interval_ms = 10;
   static uint32_t start_ms = 0;
 
@@ -312,20 +313,35 @@ void hid_task(void)
   /*------------- Mouse -------------*/
   if ( tud_hid_ready() )
   {
-    if ( btn /* || tp movement */)
+    if (btn || tp_reportAvailable()) 
     {
-      int8_t const delta = 5;
 	  uint8_t mousekeys = 0;
 	  uint8_t fn_key = 0;
+	  struct tp_DataReport tpdata = {0,0,0};
 
 	  read_mousekeys(&mousekeys, &fn_key);
 
+	  if (tp_reportAvailable()) {
+		  tpdata = tp_getStreamReport();
+		  if (config.swapxy) {
+			  uint8_t temp = tpdata.x;
+			  tpdata.x = tpdata.y;
+			  tpdata.y = temp;
+		  }
+		  if (config.invertx)
+			  tpdata.x = tpdata.x * -1;
+		  if (config.inverty)
+			  tpdata.y = tpdata.y * -1;
+	  }
+
 	  if (config.debug) {
-		  tud_cdc_write_str("mousekeys: ");
+		  tud_cdc_write_str("mousekeys: 0b");
 		  cdc_write_num(mousekeys, 2);
-		  tud_cdc_write_str("\nmouse x:");
+		  tud_cdc_write_str("\nmouse x: ");
+		  cdc_write_num(tpdata.x, 10);
 		  tud_cdc_write_char('\n');
-		  tud_cdc_write_str("mouse y:");
+		  tud_cdc_write_str("mouse y: ");
+		  cdc_write_num(tpdata.y, 10);
 		  tud_cdc_write_char('\n');
 		  while (tud_cdc_write_available() < 30) {
 			  tud_cdc_write_flush();
@@ -334,11 +350,11 @@ void hid_task(void)
 	  }
 
 	  if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key) // Scroll if middle mouse pressed
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, /*tp x*/ delta, /*tp y*/ delta);
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.x, tpdata.y);
 	  else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && fn_key)	// Middle drag if middle mouse and Fn pressed
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, /*tp x*/ delta, /*tp y*/ delta, 0, 0);
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
 	  else
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, /*tp x*/ delta, /*tp y*/ delta, 0, 0);
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
 
       // delay a bit before attempt to send keyboard report
 	  while( !tud_hid_ready() )
@@ -408,6 +424,7 @@ int main(void)
 {
 	sys_init();
 	usb_setup();
+	tp_init(); // stalls for >1sec, place before usb
 	tusb_init();
 	timer_init();
 	rgb_init();

@@ -41,6 +41,7 @@ SRCS += \
   ../rgb.c \
   ../spi_master.c \
   ../adc.c \
+  ../trackpoint.c \
   ../config.c \
   ../matrix.c \
   ../keymap.c
