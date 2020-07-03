@@ -291,7 +291,6 @@ void cdc_write_num(int num, uint8_t radix)
 	char s[25];
 	itoa(num, s, radix);
 	tud_cdc_write_str(s);
-	tud_cdc_write_char('\n');
 }
 
 //--------------------------------------------------------------------+
@@ -313,12 +312,33 @@ void hid_task(void)
   /*------------- Mouse -------------*/
   if ( tud_hid_ready() )
   {
-    if ( btn )
+    if ( btn /* || tp movement */)
     {
       int8_t const delta = 5;
+	  uint8_t mousekeys = 0;
+	  uint8_t fn_key = 0;
 
-      // no button, right + down, no scroll pan
-      tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, delta, delta, 0, 0);
+	  read_mousekeys(&mousekeys, &fn_key);
+
+	  if (config.debug) {
+		  tud_cdc_write_str("mousekeys: ");
+		  cdc_write_num(mousekeys, 2);
+		  tud_cdc_write_str("\nmouse x:");
+		  tud_cdc_write_char('\n');
+		  tud_cdc_write_str("mouse y:");
+		  tud_cdc_write_char('\n');
+		  while (tud_cdc_write_available() < 30) {
+			  tud_cdc_write_flush();
+			  tud_task();
+		  }
+	  }
+
+	  if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key) // Scroll if middle mouse pressed
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, /*tp x*/ delta, /*tp y*/ delta);
+	  else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && fn_key)	// Middle drag if middle mouse and Fn pressed
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, /*tp x*/ delta, /*tp y*/ delta, 0, 0);
+	  else
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, /*tp x*/ delta, /*tp y*/ delta, 0, 0);
 
       // delay a bit before attempt to send keyboard report
 	  while( !tud_hid_ready() )
@@ -339,11 +359,18 @@ void hid_task(void)
 	  if (config.debug) {
 		  tud_cdc_write_str("Mods: ");
 		  cdc_write_num(modifiers, 2);
-		  tud_cdc_write_str("Codes:\n");
+		  tud_cdc_write_char('\n');
+		  tud_cdc_write_str("Codes:");
 		  for(uint8_t i = 0; i < 6; i++) {
+			  tud_cdc_write_char('\t');
 			  cdc_write_num(keycode[i], 10);
 		  }
 		  tud_cdc_write_char('\n');
+		  tud_cdc_write_char('\n');
+		  while (tud_cdc_write_available() < 30) {
+			  tud_cdc_write_flush();
+			  tud_task();
+		  }
 	  }
 
       tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);

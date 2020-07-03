@@ -375,3 +375,186 @@ void read_modifiers(uint8_t *modifiers)
 	}
 	return;
 }
+
+uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] = 
+{
+	{	//Layer 0
+		{	//Register 0
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	//Register 1
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 3
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 4
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 5
+			MOUSE_BUTTON_RIGHT ,
+			MOUSE_BUTTON_MIDDLE,
+			MOUSE_BUTTON_LEFT,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 6
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 7
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 8
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+	},
+	{	//Layer 1
+		{	// Register 0
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 1
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 3
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 4
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 5
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 6
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 7
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 8
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+	}
+};
+
+void read_mousekeys(uint8_t *mousekeys, uint8_t *fn_key)
+{
+	*fn_key = FN_KEY;
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
+		for (uint8_t j = 0; j < 8; j++) {
+			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+				*mousekeys |= keymap_mousekeys[*fn_key][reg][j];
+			}
+		}
+	}
+	return;
+}
