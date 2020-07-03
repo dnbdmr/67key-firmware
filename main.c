@@ -285,6 +285,14 @@ uint8_t cdc_task(char line[], uint8_t max)
 		return 0;
 }
 
+void cdc_write_num(int num, uint8_t radix)
+{
+	char s[25];
+	itoa(num, s, radix);
+	tud_cdc_write_str(s);
+	tud_cdc_write_char('\n');
+}
+
 //--------------------------------------------------------------------+
 // USB HID
 //--------------------------------------------------------------------+
@@ -323,9 +331,19 @@ void hid_task(void)
     if ( btn )
     {
       uint8_t keycode[6] = { 0 };
+	  uint8_t modifiers = 0;
 	  read_keys(keycode);
+	  read_modifiers(&modifiers);
 
-      tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
+	  tud_cdc_write_str("Mods: ");
+	  cdc_write_num(modifiers, 2);
+	  tud_cdc_write_str("Codes:\n");
+	  for(uint8_t i = 0; i < 6; i++) {
+		  cdc_write_num(keycode[i], 10);
+	  }
+	  tud_cdc_write_char('\n');
+
+      tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
     }
   }
 }

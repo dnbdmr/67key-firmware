@@ -19,14 +19,14 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			HID_KEY_ARROW_DOWN,
 			HID_KEY_ARROW_LEFT },
 		{	//Register 1
-			HID_KEY_SHIFT_RIGHT,
+			0,		// HID_KEY_SHIFT_RIGHT,
 			HID_KEY_RETURN,
 			HID_KEY_BACKSLASH,
 			HID_KEY_BACKSPACE,
 			0,
-			HID_KEY_ALT_RIGHT,
-			0,
-			HID_KEY_CONTROL_RIGHT },
+			0,		// HID_KEY_ALT_RIGHT,
+			0,		// FUNCTION
+			0 },	// HID_KEY_CONTROL_RIGHT 
 		{	// Register 2
 			HID_KEY_SLASH,
 			HID_KEY_APOSTROPHE,
@@ -82,10 +82,10 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			HID_KEY_3,
 			HID_KEY_2 },
 		{	// Register 8
-			HID_KEY_ALT_LEFT,
-			HID_KEY_GUI_LEFT,
-			HID_KEY_CONTROL_LEFT,
-			HID_KEY_SHIFT_LEFT,
+			0,	//HID_KEY_ALT_LEFT,
+			0,	//HID_KEY_GUI_LEFT,
+			0,	//HID_KEY_CONTROL_LEFT,
+			0,	//HID_KEY_SHIFT_LEFT,
 			HID_KEY_ESCAPE,
 			HID_KEY_TAB,
 			HID_KEY_1,
@@ -182,7 +182,7 @@ void read_keys(uint8_t keycodes[])
 	uint8_t keycount = 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
 		for (uint8_t j = 0; j < 8; j ++) {
-			if ((prev_keys[reg] & (1 << j)) && prev_keys[reg]) {
+			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
 				keycodes[keycount++] = keymap_keys[layer][reg][j];
 				if (keycount > 5)
 					return;
@@ -192,3 +192,185 @@ void read_keys(uint8_t keycodes[])
 	return;
 }
 
+uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] = 
+{
+	{	//Layer 0
+		{	//Register 0
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	//Register 1
+			KEYBOARD_MODIFIER_RIGHTSHIFT,
+			0,
+			0,
+			0,
+			0,
+			KEYBOARD_MODIFIER_RIGHTALT,
+			0,
+			KEYBOARD_MODIFIER_RIGHTCTRL },
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 3
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 4
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 5
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 6
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 7
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 8
+			KEYBOARD_MODIFIER_LEFTALT,
+			KEYBOARD_MODIFIER_LEFTGUI,
+			KEYBOARD_MODIFIER_LEFTCTRL,
+			KEYBOARD_MODIFIER_LEFTSHIFT,
+			0,
+			0,
+			0,
+			0 }
+	},
+	{	//Layer 1
+		{	// Register 0
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 1
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 3
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 4
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 5
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 6
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 7
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 8
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+	}
+};
+
+void read_modifiers(uint8_t *modifiers)
+{
+	uint8_t layer = FN_KEY;
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
+		for (uint8_t j = 0; j < 8; j++) {
+			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+				*modifiers |= keymap_modifiers[layer][reg][j];
+			}
+		}
+	}
+	return;
+}
