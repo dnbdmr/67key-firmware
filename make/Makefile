@@ -1,7 +1,7 @@
 ##############################################################################
 BUILD = build
 BIN = 67key
-PORT = /dev/serial/by-id/usb-TinyUSB_TinyUSB_Device_123456-if00
+PORT = /dev/serial/by-id/usb-DNBDMR_67keyboard_123456-if00
 ##############################################################################
 .PHONY: all directory clean size
 
