@@ -300,8 +300,8 @@ void cdc_write_num(int num, uint8_t radix)
 
 void hid_task(void)
 {
-  // Poll every 10ms TODO: change this?
-  const uint32_t interval_ms = 10;
+  // Poll every 5ms TODO: change this?
+  const uint32_t interval_ms = 5;
   static uint32_t start_ms = 0;
 
   if ( millis() - start_ms < interval_ms) return; // not enough time
