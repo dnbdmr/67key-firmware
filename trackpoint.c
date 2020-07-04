@@ -30,7 +30,6 @@
 #include "hal_gpio.h"
 #include "trackpoint.h"
 #include "config.h"
-#include "tusb.h" //TODO: DEBUG
 
 static void gohi(uint8_t pin);
 static void golo(uint8_t pin);
@@ -49,8 +48,6 @@ HAL_GPIO_PIN(TP_CLK, A, 4)
 HAL_GPIO_PIN(TP_DATA, A, 3)
 #define TPDATA 3
 
-HAL_GPIO_PIN(CAPS, A, 23) //TODO: DEBUG
-
 /*- Implementations ---------------------------------------------------------*/
 
 static volatile uint8_t dataAvailable;
@@ -64,8 +61,6 @@ void tp_init(void)
 	HAL_GPIO_TP_CLK_pullen(1);
 	HAL_GPIO_TP_DATA_in();
 	HAL_GPIO_TP_DATA_pullen(1);
-
-	HAL_GPIO_CAPS_out(); //TODO: DEBUG
 
 	// enable EIC APBA clock line
 	PM->APBAMASK.reg |= PM_APBAMASK_EIC;
@@ -277,7 +272,6 @@ void tp_getDataBit(void)
 				data.y = incoming;
 				counter = 0;
 				dataAvailable = 1;
-				if (dataAvailable) HAL_GPIO_CAPS_toggle(); //TODO: DEBUG
 				break;
 		}
 		bitcount = 0;
