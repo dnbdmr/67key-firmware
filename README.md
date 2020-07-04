@@ -7,3 +7,4 @@ __TODO__
 [ ] uf2: turn down brightness on rgbs
 [ ] set up system for leds
 [ ] set up modifier reporting
+[ ] sends 3 reports whenever any key changes. problem?

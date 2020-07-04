@@ -315,13 +315,13 @@ void hid_task(void)
 
 	/*------------- Mouse -------------*/
 
-	// Make sure we can send
-	while( !tud_hid_ready() ) {
-		tud_task();
-	}
-
 	if (btn || tp_reportAvailable()) 
 	{
+		// Make sure we can send
+		while( !tud_hid_ready() ) {
+			tud_task();
+		}
+
 		uint8_t mousekeys = 0;
 		uint8_t fn_key = 0;
 		struct tp_DataReport tpdata = {0,0,0};
@@ -364,13 +364,13 @@ void hid_task(void)
 
 	/*------------- Keyboard -------------*/
 
-	// Make sure we can send
-	while( !tud_hid_ready() ) {
-		tud_task();
-	}
-
 	if ( btn )
 	{
+		// Make sure we can send
+		while( !tud_hid_ready() ) {
+			tud_task();
+		}
+
 		uint8_t keycode[6] = { 0 };
 		uint8_t modifiers = 0;
 		read_keys(keycode);
@@ -394,6 +394,19 @@ void hid_task(void)
 		}
 
 		tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
+	}
+
+	/*------------- Consumer -------------*/
+
+	if ( btn ) {
+		// Make sure we can send
+		while( !tud_hid_ready() ) {
+			tud_task();
+		}
+
+		uint16_t key = 0;
+		read_consumer(&key);
+		tud_hid_report(REPORT_ID_CONSUMER, &key, sizeof(key));
 	}
 }
 

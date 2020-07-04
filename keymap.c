@@ -179,7 +179,7 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 
 void read_keys(uint8_t keycodes[])
 {
-	uint8_t layer = FN_KEY;
+	uint8_t layer = FN_KEY ? 1 : 0;
 	uint8_t keycount = 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
 		for (uint8_t j = 0; j < 8; j ++) {
@@ -365,7 +365,7 @@ uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] =
 
 void read_modifiers(uint8_t *modifiers)
 {
-	uint8_t layer = FN_KEY;
+	uint8_t layer = FN_KEY ? 1 : 0;;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
 		for (uint8_t j = 0; j < 8; j++) {
 			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
@@ -548,11 +548,195 @@ uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] =
 
 void read_mousekeys(uint8_t *mousekeys, uint8_t *fn_key)
 {
-	*fn_key = FN_KEY;
+	*fn_key = FN_KEY ? 1 : 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
 		for (uint8_t j = 0; j < 8; j++) {
 			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
 				*mousekeys |= keymap_mousekeys[*fn_key][reg][j];
+			}
+		}
+	}
+	return;
+}
+
+uint8_t keymap_consumer[2][MATRIX_REG_COUNT][8] =
+{
+	{	//Layer 0
+		{	//Register 0
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	//Register 1
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 3
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 4
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 5
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 6
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 7
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 8
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+	},
+	{	//Layer 1
+		{	// Register 0
+			0,
+			0,
+			0,
+			HID_USAGE_CONSUMER_VOLUME_INCREMENT,
+			HID_USAGE_CONSUMER_SCAN_NEXT,
+			0,
+			HID_USAGE_CONSUMER_PLAY_PAUSE,
+			HID_USAGE_CONSUMER_VOLUME_DECREMENT},
+		{	// Register 1
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 2
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 3
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 4
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 5
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 6
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 7
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 },
+		{	// Register 8
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0 }
+	}
+};
+
+void read_consumer(uint16_t *button)
+{
+	uint8_t fn_key = FN_KEY ? 1 : 0;
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
+		for (uint8_t j = 0; j < 8; j++) {
+			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+				*button = keymap_consumer[fn_key][reg][j];
+				if (*button) return;
 			}
 		}
 	}
