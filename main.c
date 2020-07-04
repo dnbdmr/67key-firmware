@@ -55,7 +55,7 @@ volatile uint32_t msticks = 0;
 
 void SysTick_Handler(void)
 {
-       msticks++;
+	msticks++;
 }
 
 uint32_t millis(void)
@@ -134,7 +134,7 @@ static void sys_init(void)
 	while (0 == (SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY)); // Wait for DFLL sync complete
 
 	SYSCTRL->DFLLMUL.reg = SYSCTRL_DFLLMUL_MUL(48000); // Set to multiply USB SOF frequency (when USB attached)
-	
+
 	uint32_t coarse, fine;
 	coarse = NVM_READ_CAL(DFLL48M_COARSE_CAL); // Read factory cals for DFLL48M
 	//fine = NVM_READ_CAL(DFLL48M_FINE_CAL);
@@ -142,12 +142,12 @@ static void sys_init(void)
 	SYSCTRL->DFLLVAL.reg = SYSCTRL_DFLLVAL_COARSE(coarse) | SYSCTRL_DFLLVAL_FINE(fine); // Load factory cals
 
 	SYSCTRL->DFLLCTRL.reg = SYSCTRL_DFLLCTRL_ENABLE | 
-							SYSCTRL_DFLLCTRL_USBCRM | // Set DFLL for USB Clock Recovery Mode
-							//SYSCTRL_DFLLCTRL_BPLCKC | // Bypass Coarse Lock, ignored with USBCRM
-							SYSCTRL_DFLLCTRL_CCDIS |  // Disable Chill Cycle
-							SYSCTRL_DFLLCTRL_RUNSTDBY |  // Run during standby for USB wakeup interrupts
-							SYSCTRL_DFLLCTRL_MODE;   // Set Closed Loop Mode
-							//SYSCTRL_DFLLCTRL_STABLE; // Fine calibration register locks (stable) after fine lock, ignored with USBCRM
+		SYSCTRL_DFLLCTRL_USBCRM | // Set DFLL for USB Clock Recovery Mode
+		//SYSCTRL_DFLLCTRL_BPLCKC | // Bypass Coarse Lock, ignored with USBCRM
+		SYSCTRL_DFLLCTRL_CCDIS |  // Disable Chill Cycle
+		SYSCTRL_DFLLCTRL_RUNSTDBY |  // Run during standby for USB wakeup interrupts
+		SYSCTRL_DFLLCTRL_MODE;   // Set Closed Loop Mode
+	//SYSCTRL_DFLLCTRL_STABLE; // Fine calibration register locks (stable) after fine lock, ignored with USBCRM
 
 	while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY)); // Wait for DFLL sync complete
 
@@ -155,7 +155,7 @@ static void sys_init(void)
 	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(0) | GCLK_GENCTRL_SRC(GCLK_SOURCE_DFLL48M) |
 		GCLK_GENCTRL_RUNSTDBY | GCLK_GENCTRL_GENEN;
 	while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY);
-	
+
 	//Disable OSC8M and generator 2 (enabled by UF2 bootloader)
 	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(2);
 	GCLK->GENCTRL.bit.GENEN = 0;
@@ -203,6 +203,10 @@ void tud_resume_cb(void)
 	SysTick_Config(48000); //systick at 1ms
 }
 
+//--------------------------------------------------------------------+
+// USB CDC
+//--------------------------------------------------------------------+
+
 //-----------------------------------------------------------------------------
 // Invoked when cdc when line state changed e.g connected/disconnected
 void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
@@ -230,27 +234,27 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 //-----------------------------------------------------------------------------
 // Invoked when CDC interface received data from host
 /*
-void tud_cdc_rx_cb(uint8_t itf)
+   void tud_cdc_rx_cb(uint8_t itf)
+   {
+   (void) itf;
+//tud_cdc_write_str("Stop That!!\n");
+//tud_cdc_read_flush();
+
+if ( tud_cdc_connected() )
 {
-	(void) itf;
-	//tud_cdc_write_str("Stop That!!\n");
-	//tud_cdc_read_flush();
+// connected and there are data available
+if ( tud_cdc_available() )
+{
+uint8_t buf[64];
+// read and echo back
+uint8_t count = tud_cdc_read(buf, sizeof(buf));
 
-	if ( tud_cdc_connected() )
-	{
-		// connected and there are data available
-		if ( tud_cdc_available() )
-		{
-			uint8_t buf[64];
-			// read and echo back
-			uint8_t count = tud_cdc_read(buf, sizeof(buf));
-
-			for(uint32_t i=0; i<count; i++)
-			{
-				tud_cdc_write_char(buf[i]);
-			}
-		}
-	}
+for(uint32_t i=0; i<count; i++)
+{
+tud_cdc_write_char(buf[i]);
+}
+}
+}
 }
 */
 
@@ -300,98 +304,95 @@ void cdc_write_num(int num, uint8_t radix)
 
 void hid_task(void)
 {
-  // Poll every 5ms TODO: change this?
-  const uint32_t interval_ms = 5;
-  static uint32_t start_ms = 0;
+	// Poll every 5ms TODO: change this?
+	const uint32_t interval_ms = 5;
+	static uint32_t start_ms = 0;
 
-  if ( millis() - start_ms < interval_ms) return; // not enough time
-  start_ms += interval_ms;
+	if ( millis() - start_ms < interval_ms) return; // not enough time
+	start_ms += interval_ms;
 
-  //uint32_t const btn = board_button_read();
-  uint32_t const btn = shift_task();
+	uint32_t const btn = shift_task();
 
-  /*------------- Mouse -------------*/
-  if ( tud_hid_ready() )
-  {
-    if (btn || tp_reportAvailable()) 
-    {
-	  uint8_t mousekeys = 0;
-	  uint8_t fn_key = 0;
-	  struct tp_DataReport tpdata = {0,0,0};
+	/*------------- Mouse -------------*/
+	if ( tud_hid_ready() )
+	{
+		if (btn || tp_reportAvailable()) 
+		{
+			uint8_t mousekeys = 0;
+			uint8_t fn_key = 0;
+			struct tp_DataReport tpdata = {0,0,0};
 
-	  read_mousekeys(&mousekeys, &fn_key);
+			read_mousekeys(&mousekeys, &fn_key);
 
-	  if (tp_reportAvailable()) {
-		  tpdata = tp_getStreamReport();
-		  if (config.swapxy) {
-			  uint8_t temp = tpdata.x;
-			  tpdata.x = tpdata.y;
-			  tpdata.y = temp;
-		  }
-		  if (config.invertx)
-			  tpdata.x = tpdata.x * -1;
-		  if (config.inverty)
-			  tpdata.y = tpdata.y * -1;
-	  }
+			if (tp_reportAvailable()) {
+				tpdata = tp_getStreamReport();
+				if (config.swapxy) {
+					uint8_t temp = tpdata.x;
+					tpdata.x = tpdata.y;
+					tpdata.y = temp;
+				}
+				if (config.invertx)
+					tpdata.x = tpdata.x * -1;
+				if (config.inverty)
+					tpdata.y = tpdata.y * -1;
+			}
 
-	  if (config.debug) {
-		  tud_cdc_write_str("mousekeys: 0b");
-		  cdc_write_num(mousekeys, 2);
-		  tud_cdc_write_str("\nmouse x: ");
-		  cdc_write_num(tpdata.x, 10);
-		  tud_cdc_write_char('\n');
-		  tud_cdc_write_str("mouse y: ");
-		  cdc_write_num(tpdata.y, 10);
-		  tud_cdc_write_char('\n');
-		  while (tud_cdc_write_available() < 30) {
-			  tud_cdc_write_flush();
-			  tud_task();
-		  }
-	  }
+			if (config.debug) {
+				tud_cdc_write_str("mousekeys: 0b");
+				cdc_write_num(mousekeys, 2);
+				tud_cdc_write_str("\nmouse x: ");
+				cdc_write_num(tpdata.x, 10);
+				tud_cdc_write_char('\n');
+				tud_cdc_write_str("mouse y: ");
+				cdc_write_num(tpdata.y, 10);
+				tud_cdc_write_char('\n');
+				while (tud_cdc_write_available() < 30) {
+					tud_cdc_write_flush();
+					tud_task();
+				}
+			}
 
-	  if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key) // Scroll if middle mouse pressed
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-2, tpdata.x/2); //TODO: MAKE CONFIG SETTINGS
-	  else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && fn_key)	// Middle drag if middle mouse and Fn pressed
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
-	  else
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
+			if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key) // Scroll if middle mouse pressed
+				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-4, tpdata.x/-4); //TODO: MAKE CONFIG SETTINGS
+			else
+				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
 
-      // delay a bit before attempt to send keyboard report
-	  while( !tud_hid_ready() )
-		  tud_task();
-    }
-  }
+			// delay a bit before attempt to send keyboard report
+			while( !tud_hid_ready() )
+				tud_task();
+		}
+	}
 
-  /*------------- Keyboard -------------*/
-  if ( tud_hid_ready() )
-  {
-    if ( btn )
-    {
-      uint8_t keycode[6] = { 0 };
-	  uint8_t modifiers = 0;
-	  read_keys(keycode);
-	  read_modifiers(&modifiers);
+	/*------------- Keyboard -------------*/
+	if ( tud_hid_ready() )
+	{
+		if ( btn )
+		{
+			uint8_t keycode[6] = { 0 };
+			uint8_t modifiers = 0;
+			read_keys(keycode);
+			read_modifiers(&modifiers);
 
-	  if (config.debug) {
-		  tud_cdc_write_str("Mods: ");
-		  cdc_write_num(modifiers, 2);
-		  tud_cdc_write_char('\n');
-		  tud_cdc_write_str("Codes:");
-		  for(uint8_t i = 0; i < 6; i++) {
-			  tud_cdc_write_char('\t');
-			  cdc_write_num(keycode[i], 10);
-		  }
-		  tud_cdc_write_char('\n');
-		  tud_cdc_write_char('\n');
-		  while (tud_cdc_write_available() < 30) {
-			  tud_cdc_write_flush();
-			  tud_task();
-		  }
-	  }
+			if (config.debug) {
+				tud_cdc_write_str("Mods: ");
+				cdc_write_num(modifiers, 2);
+				tud_cdc_write_char('\n');
+				tud_cdc_write_str("Codes:");
+				for(uint8_t i = 0; i < 6; i++) {
+					tud_cdc_write_char('\t');
+					cdc_write_num(keycode[i], 10);
+				}
+				tud_cdc_write_char('\n');
+				tud_cdc_write_char('\n');
+				while (tud_cdc_write_available() < 30) {
+					tud_cdc_write_flush();
+					tud_task();
+				}
+			}
 
-      tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
-    }
-  }
+			tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
+		}
+	}
 }
 
 // Invoked when received GET_REPORT control request
@@ -399,24 +400,24 @@ void hid_task(void)
 // Return zero will cause the stack to STALL request
 uint16_t tud_hid_get_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
 {
-  // TODO not Implemented
-  (void) report_id;
-  (void) report_type;
-  (void) buffer;
-  (void) reqlen;
+	// TODO not Implemented
+	(void) report_id;
+	(void) report_type;
+	(void) buffer;
+	(void) reqlen;
 
-  return 0;
+	return 0;
 }
 
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
-  // TODO set LED based on CAPLOCK, NUMLOCK etc...
-  (void) report_id;
-  (void) report_type;
-  (void) buffer;
-  (void) bufsize;
+	// TODO set LED based on CAPLOCK, NUMLOCK etc...
+	(void) report_id;
+	(void) report_type;
+	(void) buffer;
+	(void) bufsize;
 }
 
 //-----------------------------------------------------------------------------
