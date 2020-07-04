@@ -483,7 +483,7 @@ int main(void)
 				cdc_write_num(tp_readFromRamLocation(0x4a), 10); //TODO: freezes on read/write, sometimes
 				tud_cdc_write_char('\n');
 			} else if (s[0] == 'w') {
-				tp_setSensitivityFactor(100);
+				tp_setSensitivityFactor(90);
 				tud_cdc_write_char('1');
 			}
 		}
