@@ -38,6 +38,8 @@ uint8_t tp_reportAvailable(void);
 void tp_enableInt(void);
 void tp_reset(void);
 uint8_t tp_readFromRamLocation(uint8_t location);
+void tp_setSensitivityFactor(uint8_t sensitivityFactor);
+void tp_writeToRamLocation(uint8_t location, uint8_t value);
 
 struct tp_DataReport {
 	uint8_t state;

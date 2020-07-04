@@ -29,6 +29,8 @@
 #include "sam.h"
 #include "hal_gpio.h"
 #include "trackpoint.h"
+#include "config.h"
+#include "tusb.h" //TODO: DEBUG
 
 static void gohi(uint8_t pin);
 static void golo(uint8_t pin);
@@ -47,10 +49,12 @@ HAL_GPIO_PIN(TP_CLK, A, 4)
 HAL_GPIO_PIN(TP_DATA, A, 3)
 #define TPDATA 3
 
+HAL_GPIO_PIN(CAPS, A, 23) //TODO: DEBUG
+
 /*- Implementations ---------------------------------------------------------*/
 
 static volatile uint8_t dataAvailable;
-static struct tp_DataReport data;
+static volatile struct tp_DataReport data;
 
 
 //-----------------------------------------------------------------------------
@@ -60,6 +64,8 @@ void tp_init(void)
 	HAL_GPIO_TP_CLK_pullen(1);
 	HAL_GPIO_TP_DATA_in();
 	HAL_GPIO_TP_DATA_pullen(1);
+
+	HAL_GPIO_CAPS_out(); //TODO: DEBUG
 
 	// enable EIC APBA clock line
 	PM->APBAMASK.reg |= PM_APBAMASK_EIC;
@@ -77,6 +83,7 @@ void tp_init(void)
 
 	tp_reset();
 	tp_setStreamMode();
+	//tp_setSensitivityFactor(config.tp_sensitivity);
 	tp_enableInt();
 }
 
@@ -214,6 +221,18 @@ uint8_t tp_readFromRamLocation(uint8_t location)
 	return tp_read();
 }
 
+// errors are ignored
+void tp_writeToRamLocation(uint8_t location, uint8_t value) {
+	tp_write(0xe2);
+	tp_read(); // ACK
+	tp_write(0x81);
+	tp_read(); // ACK
+	tp_write(location);
+	tp_read(); // ACK
+	tp_write(value);
+	tp_read(); // ACK
+}
+
 void tp_setStreamMode(void)
 {
 	tp_write(0xea);
@@ -258,6 +277,7 @@ void tp_getDataBit(void)
 				data.y = incoming;
 				counter = 0;
 				dataAvailable = 1;
+				if (dataAvailable) HAL_GPIO_CAPS_toggle(); //TODO: DEBUG
 				break;
 		}
 		bitcount = 0;
@@ -291,6 +311,11 @@ void tp_reset(void)
 	delay_ms(10);
 
 	gohi(TPCLK);
+}
+
+void tp_setSensitivityFactor(uint8_t sensitivityFactor)
+{
+	tp_writeToRamLocation(0x4a, sensitivityFactor);
 }
 
 void EIC_Handler(void)

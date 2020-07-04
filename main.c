@@ -350,7 +350,7 @@ void hid_task(void)
 	  }
 
 	  if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key) // Scroll if middle mouse pressed
-		  tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.x, tpdata.y);
+		  tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-2, tpdata.x/2); //TODO: MAKE CONFIG SETTINGS
 	  else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && fn_key)	// Middle drag if middle mouse and Fn pressed
 		  tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
 	  else
@@ -441,7 +441,7 @@ int main(void)
 	led[1].red = 0xFF;
 	led[1].blue = 0x0;
 	led[1].green = 0xFF;
-	led[1].bright = 0x05;
+	led[1].bright = 0x02;
 	rgb_update(led, 2);
 
 	char s[25];
@@ -463,6 +463,12 @@ int main(void)
 			} else if (s[0] == 'd') {
 				config.debug = !config.debug;
 				cdc_write_num(config.debug, 10);
+			} else if (s[0] == 't') {
+				cdc_write_num(tp_readFromRamLocation(0x4a), 10); //TODO: freezes on read/write, sometimes
+				tud_cdc_write_char('\n');
+			} else if (s[0] == 'w') {
+				tp_setSensitivityFactor(100);
+				tud_cdc_write_char('1');
 			}
 		}
 

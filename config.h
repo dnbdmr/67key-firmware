@@ -8,6 +8,7 @@ typedef struct config_tag {
 	uint8_t invertx;
 	uint8_t inverty;
 	uint8_t swapxy;
+	uint8_t tp_sensitivity;
 } config_type;
 
 extern struct config_tag config;
