@@ -437,10 +437,10 @@ int main(void)
 
 	HAL_GPIO_LED1_out();
 
-	led[0].red = 0xFF;
+	led[0].red = 0x5F;
 	led[0].blue = 0x0;
 	led[0].green = 0x0;
-	led[0].bright = 0x02;
+	led[0].bright = 0x01;
 	led[1].red = 0xFF;
 	led[1].blue = 0x0;
 	led[1].green = 0xFF;
