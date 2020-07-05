@@ -37,7 +37,7 @@
 #include "nvm_data.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
-#include "rgb.h"
+#include "led.h"
 #include "spi_master.h"
 #include "matrix.h"
 #include "keymap.h"
@@ -46,8 +46,6 @@
 
 /*- Definitions -------------------------------------------------------------*/
 HAL_GPIO_PIN(LED1,	A, 22);
-
-RGB_type led[2];
 
 /*- Implementations ---------------------------------------------------------*/
 
@@ -188,7 +186,7 @@ void usb_setup(void)
 void tud_suspend_cb(bool remote_wakeup_en)
 {
 	(void) remote_wakeup_en;
-	rgb_zero(1);
+	led_off();
 	HAL_GPIO_LED1_in();
 	SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk); //disable systick
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk << SCB_SCR_SLEEPDEEP_Pos;
@@ -198,7 +196,7 @@ void tud_suspend_cb(bool remote_wakeup_en)
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
-	rgb_update(led, 2);
+	led_on();
 	HAL_GPIO_LED1_out();
 	SysTick_Config(48000); //systick at 1ms
 }
@@ -451,47 +449,35 @@ uint16_t tud_hid_get_report_cb(uint8_t report_id, hid_report_type_t report_type,
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
-	// TODO set LED based on CAPLOCK, NUMLOCK etc...
 	(void) report_id;
 	(void) report_type;
-	(void) buffer;
 	(void) bufsize;
+
+	led_update(buffer[1]);
 }
 
 //-----------------------------------------------------------------------------
 int main(void)
 {
 	sys_init();
+	rgb_init();
 	usb_setup();
 	tp_init(); // stalls for >1sec, place before usb
 	tusb_init();
 	timer_init();
-	rgb_init();
 	spi_init(1000000, 0);
 	config_init();
 
-
 	HAL_GPIO_LED1_out();
 
-	led[0].red = 0x5F;
-	led[0].blue = 0x0;
-	led[0].green = 0x0;
-	led[0].bright = 0x01;
-	led[1].red = 0xFF;
-	led[1].blue = 0x0;
-	led[1].green = 0xFF;
-	led[1].bright = 0x02;
-	rgb_update(led, 2);
-
 	char s[25];
-	uint32_t tenthmintick = millis();
-	uint8_t ledpos = 0;
 
 	while (1)
 	{
 
 		tud_task();
 		hid_task();
+		led_task();
 
 		if (cdc_task(s, 25)) {
 			if (s[0] == 'b') {
@@ -509,13 +495,6 @@ int main(void)
 				tp_setSensitivityFactor(90);
 				tud_cdc_write_char('1');
 			}
-		}
-
-		if ((millis() - tenthmintick) >= 50) {
-			tenthmintick = millis();
-			rgb_wheel(&led[1], ledpos);
-			rgb_update(led, 2);
-			ledpos += 4;
 		}
 	}
 

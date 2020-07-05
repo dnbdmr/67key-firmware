@@ -3,16 +3,24 @@
 #include <stdbool.h>
 #include "samd21.h"
 #include "hal_gpio.h"
-#include "rgb.h"
+#include "led.h"
+#include "tusb.h"
 
-HAL_GPIO_PIN(MOSI,            A, 0);	// SC1.0
-HAL_GPIO_PIN(SCLK,            A, 1);	// SC1.1
+HAL_GPIO_PIN(MOSI,		A, 0);	// SC1.0
+HAL_GPIO_PIN(SCLK,		A, 1);	// SC1.1
 #define SPI_SERCOM            SERCOM1
 #define SPI_SERCOM_PMUX       PORT_PMUX_PMUXE_D_Val
 #define SPI_SERCOM_GCLK_ID    SERCOM1_GCLK_ID_CORE
 #define SPI_SERCOM_CLK_GEN    0
 #define SPI_SERCOM_APBCMASK   PM_APBCMASK_SERCOM1
 #define FREQ	1000000
+
+RGB_type rgbarray[2];
+
+HAL_GPIO_PIN(CAPSLOCK,	A, 23);
+#define	CAPS_BLINK_RATE		100
+
+static uint8_t state;
 
 void rgb_init(void)
 {
@@ -44,7 +52,16 @@ void rgb_init(void)
       SERCOM_SPI_CTRLA_DOPO(0) |
       SERCOM_SPI_CTRLA_MODE_SPI_MASTER;
 
-  rgb_zero(RGB_NUM);
+  rgbarray[0].red = 0x0;
+  rgbarray[0].blue = 0x0;
+  rgbarray[0].green = 0x0;
+  rgbarray[0].bright = 0x01;
+  rgbarray[1].red = 0xFF;
+  rgbarray[1].blue = 0x0;
+  rgbarray[1].green = 0x00;
+  rgbarray[1].bright = 0x01;
+  rgb_update(rgbarray, RGB_NUM);
+
 }
 
 void rgb_sendbyte(uint8_t byte)
@@ -112,3 +129,59 @@ void rgb_wheel(RGB_type *led, uint8_t pos)
 	return;
 }
 
+void led_task(void)
+{
+	static uint32_t caps_time = 0;
+	static uint32_t rgb0_time = 0;
+	static uint32_t rgb1_time = 0;
+	static uint8_t rgb0_pos = 0;
+	static uint8_t rgb1_pos = 0;
+
+	if (millis() - caps_time > CAPS_BLINK_RATE) {
+		caps_time = millis();
+
+		if (state & KEYBOARD_LED_CAPSLOCK) {
+			HAL_GPIO_CAPSLOCK_out();
+			HAL_GPIO_CAPSLOCK_toggle();
+		}
+		else
+			HAL_GPIO_CAPSLOCK_in();
+	}
+
+	if ((millis() - rgb1_time) >= 50) {
+		rgb1_time = millis();
+		rgb_wheel(&rgbarray[1], rgb1_pos);
+		rgb_update(rgbarray, RGB_NUM);
+		rgb1_pos += 1;
+	}
+
+	if ((millis() - rgb0_time) >= 50) {
+		rgb0_time = millis();
+		if (rgbarray[0].red == 255)
+			rgb0_pos = 0;
+		if (rgbarray[0].red <= 10)
+			rgb0_pos = 1;
+		if (rgb0_pos)
+			rgbarray[0].red++;
+		else
+			rgbarray[0].red--;
+		rgb_update(rgbarray, RGB_NUM);
+	}
+}
+
+void led_update(uint8_t buffer)
+{
+	state = buffer;
+}
+
+void led_off(void)
+{
+	rgb_zero(2);
+	HAL_GPIO_CAPSLOCK_in();
+}
+
+void led_on(void)
+{
+	rgb_update(rgbarray, RGB_NUM);
+	HAL_GPIO_CAPSLOCK_in();
+}

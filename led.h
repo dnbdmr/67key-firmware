@@ -1,6 +1,6 @@
 /* APA102/DotStar bitbang library for onboard dotstar on ItsyBitsy M0 express */
-#ifndef _RGB_H_
-#define _RGB_H_
+#ifndef _LED_H_
+#define _LED_H_
 
 #include <stdint.h>
 
@@ -19,4 +19,11 @@ void rgb_init(void);
 void rgb_zero(uint8_t num);
 void rgb_wheel(RGB_type *led, uint8_t pos);
 
-#endif // _RGB_H_ 
+void led_task(void);
+void led_update(uint8_t buffer);
+void led_off(void);
+void led_on(void);
+
+extern uint32_t millis(void);
+
+#endif // _LED_H_ 

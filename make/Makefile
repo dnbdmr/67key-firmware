@@ -38,7 +38,7 @@ SRCS += \
   ../tinyusb/src/class/cdc/cdc_device.c \
   ../tinyusb/src/class/hid/hid_device.c \
   ../usb_descriptors.c \
-  ../rgb.c \
+  ../led.c \
   ../spi_master.c \
   ../adc.c \
   ../trackpoint.c \
