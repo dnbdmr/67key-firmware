@@ -19,35 +19,30 @@ RGB_type rgbarray[2];
 
 HAL_GPIO_PIN(CAPSLOCK,	A, 23);
 #define	CAPS_BLINK_RATE		100
+HAL_GPIO_PIN(LED1,	A, 22);
 
 static uint8_t state;
 
 void rgb_init(void)
 {
+	//set up RGB SPI
   int baud = F_CPU / (2 * FREQ) - 1;
-
   if (baud < 0)
     baud = 0;
-
   if (baud > 255)
     baud = 255;
 
   HAL_GPIO_MOSI_out();
   HAL_GPIO_MOSI_pmuxen(SPI_SERCOM_PMUX);
-
   HAL_GPIO_SCLK_out();
   HAL_GPIO_SCLK_pmuxen(SPI_SERCOM_PMUX);
 
   PM->APBCMASK.reg |= SPI_SERCOM_APBCMASK;
-
   GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(SPI_SERCOM_GCLK_ID) |
       GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN(SPI_SERCOM_CLK_GEN);
-
   SPI_SERCOM->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_SWRST;
   while (SPI_SERCOM->SPI.CTRLA.reg & SERCOM_SPI_CTRLA_SWRST);
-
   SPI_SERCOM->SPI.BAUD.reg = baud;
-
   SPI_SERCOM->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_ENABLE |
       SERCOM_SPI_CTRLA_DOPO(0) |
       SERCOM_SPI_CTRLA_MODE_SPI_MASTER;
@@ -61,6 +56,26 @@ void rgb_init(void)
   rgbarray[1].green = 0x00;
   rgbarray[1].bright = 0x01;
   rgb_update(rgbarray, RGB_NUM);
+
+  // set up LED PWM
+  PM->APBCMASK.reg |= PM_APBCMASK_TC4;
+  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(TC4_GCLK_ID) |
+	  GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN(0);
+  TC4->COUNT8.CTRLA.reg = TC_CTRLA_MODE_COUNT8 | TC_CTRLA_WAVEGEN_NPWM |
+	  TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_PRESCSYNC_RESYNC;
+  TC4->COUNT8.CTRLC.reg = TC_CTRLC_INVEN0 | TC_CTRLC_INVEN1;
+  TC4->COUNT8.PER.reg = 255;	// for 400Hz
+  TC4->COUNT8.CC[0].reg = 128;	// Capslock
+  TC4->COUNT8.CC[1].reg = 255;	// board led
+  TC4->COUNT8.COUNT.reg = 0;
+  TC4->COUNT8.CTRLA.reg |= TC_CTRLA_ENABLE;
+
+  HAL_GPIO_LED1_out();
+  HAL_GPIO_LED1_set();
+  HAL_GPIO_LED1_pmux_set(PORT_PMUX_PMUXE_E);
+  HAL_GPIO_CAPSLOCK_out();
+  HAL_GPIO_CAPSLOCK_set();
+  HAL_GPIO_CAPSLOCK_pmux_set(PORT_PMUX_PMUXE_E);
 
 }
 
@@ -132,6 +147,7 @@ void rgb_wheel(RGB_type *led, uint8_t pos)
 void led_task(void)
 {
 	static uint32_t caps_time = 0;
+	static uint32_t led1_time = 0;
 	static uint32_t rgb0_time = 0;
 	static uint32_t rgb1_time = 0;
 	static uint8_t rgb0_pos = 0;
@@ -141,11 +157,16 @@ void led_task(void)
 		caps_time = millis();
 
 		if (state & KEYBOARD_LED_CAPSLOCK) {
-			HAL_GPIO_CAPSLOCK_out();
-			HAL_GPIO_CAPSLOCK_toggle();
+			HAL_GPIO_CAPSLOCK_pmux_toggle();
 		}
 		else
-			HAL_GPIO_CAPSLOCK_in();
+			HAL_GPIO_CAPSLOCK_pmuxdis();
+	}
+
+	if (millis() - led1_time > 500) {
+		led1_time = millis();
+
+		HAL_GPIO_LED1_pmux_toggle();
 	}
 
 	if ((millis() - rgb1_time) >= 50) {
@@ -172,6 +193,11 @@ void led_task(void)
 void led_update(uint8_t buffer)
 {
 	state = buffer;
+}
+
+void led_brightness(uint8_t bright) {
+	TC4->COUNT8.CC[0].reg = bright;
+	TC4->COUNT8.CC[1].reg = bright;
 }
 
 void led_off(void)

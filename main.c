@@ -45,7 +45,6 @@
 #include "trackpoint.h"
 
 /*- Definitions -------------------------------------------------------------*/
-HAL_GPIO_PIN(LED1,	A, 22);
 
 /*- Implementations ---------------------------------------------------------*/
 
@@ -82,44 +81,6 @@ void delay_ms(uint32_t ms)
 {
 	uint32_t tempms = millis();
 	while((millis() - tempms) < ms);
-}
-
-
-//-----------------------------------------------------------------------------
-void TC3_Handler(void)
-{
-	if (TC3->COUNT16.INTFLAG.reg & TC_INTFLAG_MC(1))
-	{
-		HAL_GPIO_LED1_toggle();
-		TC3->COUNT16.INTFLAG.reg = TC_INTFLAG_MC(1);
-	}
-}
-
-//-----------------------------------------------------------------------------
-static void timer_ms(uint32_t ms) {
-	TC3->COUNT16.CC[0].reg = (F_CPU / 1000ul / 1024) * ms;
-	TC3->COUNT16.COUNT.reg = 0;
-}
-
-static void timer_init(void)
-{
-	PM->APBCMASK.reg |= PM_APBCMASK_TC3;
-
-	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(TC3_GCLK_ID) |
-		GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN(0);
-
-	TC3->COUNT16.CTRLA.reg = TC_CTRLA_MODE_COUNT16 | TC_CTRLA_WAVEGEN_MFRQ |
-		TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_PRESCSYNC_RESYNC;
-
-	TC3->COUNT16.COUNT.reg = 0;
-
-	TC3->COUNT16.CC[0].reg = (F_CPU / 1000ul / 1024) * 500; // 500ms
-	TC3->COUNT16.COUNT.reg = 0;
-
-	TC3->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE;
-
-	TC3->COUNT16.INTENSET.reg = TC_INTENSET_MC(1);
-	NVIC_EnableIRQ(TC3_IRQn);
 }
 
 //-----------------------------------------------------------------------------
@@ -187,7 +148,6 @@ void tud_suspend_cb(bool remote_wakeup_en)
 {
 	(void) remote_wakeup_en;
 	led_off();
-	HAL_GPIO_LED1_in();
 	SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk); //disable systick
 	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk << SCB_SCR_SLEEPDEEP_Pos;
 	__WFI();
@@ -197,7 +157,6 @@ void tud_suspend_cb(bool remote_wakeup_en)
 void tud_resume_cb(void)
 {
 	led_on();
-	HAL_GPIO_LED1_out();
 	SysTick_Config(48000); //systick at 1ms
 }
 
@@ -464,11 +423,8 @@ int main(void)
 	usb_setup();
 	tp_init(); // stalls for >1sec, place before usb
 	tusb_init();
-	timer_init();
 	spi_init(1000000, 0);
 	config_init();
-
-	HAL_GPIO_LED1_out();
 
 	char s[25];
 
@@ -483,7 +439,7 @@ int main(void)
 			if (s[0] == 'b') {
 				uint32_t ms = atoi((const char *)&s[1]);
 				if (ms > 0 && ms < 50000) {
-					timer_ms(ms);
+					led_brightness(ms);
 				}
 			} else if (s[0] == 'd') {
 				config.debug = !config.debug;

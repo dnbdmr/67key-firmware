@@ -117,6 +117,21 @@
     (void)HAL_GPIO_##name##_pmuxen;						\
   }										\
 										\
+  static inline void HAL_GPIO_##name##_pmux_set(int mux)				\
+  {										\
+    if (pin & 1)								\
+      PORT->Group[HAL_GPIO_PORT##port].PMUX[pin>>1].bit.PMUXO = mux;		\
+    else									\
+      PORT->Group[HAL_GPIO_PORT##port].PMUX[pin>>1].bit.PMUXE = mux;		\
+    (void)HAL_GPIO_##name##_pmux_set;						\
+  }										\
+										\
+  static inline void HAL_GPIO_##name##_pmux_toggle(void)				\
+  {										\
+    PORT->Group[HAL_GPIO_PORT##port].PINCFG[pin].reg ^= PORT_PINCFG_PMUXEN;	\
+    (void)HAL_GPIO_##name##_pmux_toggle;						\
+  }										\
+										\
   static inline void HAL_GPIO_##name##_pmuxdis(void)				\
   {										\
     PORT->Group[HAL_GPIO_PORT##port].PINCFG[pin].reg &= ~PORT_PINCFG_PMUXEN;	\

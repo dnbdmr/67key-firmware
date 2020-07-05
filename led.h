@@ -23,6 +23,7 @@ void led_task(void);
 void led_update(uint8_t buffer);
 void led_off(void);
 void led_on(void);
+void led_brightness(uint8_t bright);
 
 extern uint32_t millis(void);
 
