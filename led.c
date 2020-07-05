@@ -13,7 +13,7 @@ HAL_GPIO_PIN(SCLK,		A, 1);	// SC1.1
 #define SPI_SERCOM_GCLK_ID    SERCOM1_GCLK_ID_CORE
 #define SPI_SERCOM_CLK_GEN    0
 #define SPI_SERCOM_APBCMASK   PM_APBCMASK_SERCOM1
-#define FREQ	1000000
+#define FREQ	2000000
 
 RGB_type rgbarray[2];
 
@@ -65,8 +65,8 @@ void rgb_init(void)
 	  TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_PRESCSYNC_RESYNC;
   TC4->COUNT8.CTRLC.reg = TC_CTRLC_INVEN0 | TC_CTRLC_INVEN1;
   TC4->COUNT8.PER.reg = 255;	// for 400Hz
-  TC4->COUNT8.CC[0].reg = 128;	// Capslock
-  TC4->COUNT8.CC[1].reg = 255;	// board led
+  TC4->COUNT8.CC[0].reg = 255;	// board led
+  TC4->COUNT8.CC[1].reg = 100;	// Capslock
   TC4->COUNT8.COUNT.reg = 0;
   TC4->COUNT8.CTRLA.reg |= TC_CTRLA_ENABLE;
 
@@ -176,11 +176,11 @@ void led_task(void)
 		rgb1_pos += 1;
 	}
 
-	if ((millis() - rgb0_time) >= 50) {
+	if ((millis() - rgb0_time) >= 20) {
 		rgb0_time = millis();
-		if (rgbarray[0].red == 255)
+		if (rgbarray[0].red == 80)
 			rgb0_pos = 0;
-		if (rgbarray[0].red <= 10)
+		if (rgbarray[0].red <= 8)
 			rgb0_pos = 1;
 		if (rgb0_pos)
 			rgbarray[0].red++;
@@ -196,8 +196,7 @@ void led_update(uint8_t buffer)
 }
 
 void led_brightness(uint8_t bright) {
-	TC4->COUNT8.CC[0].reg = bright;
-	TC4->COUNT8.CC[1].reg = bright;
+	TC4->COUNT8.CC[0].reg = bright; // board led
 }
 
 void led_off(void)

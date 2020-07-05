@@ -45,7 +45,7 @@
 #include "trackpoint.h"
 
 /*- Definitions -------------------------------------------------------------*/
-
+HAL_GPIO_PIN(TEST, A, 14)
 /*- Implementations ---------------------------------------------------------*/
 
 volatile uint32_t msticks = 0;
@@ -423,13 +423,16 @@ int main(void)
 	usb_setup();
 	tp_init(); // stalls for >1sec, place before usb
 	tusb_init();
-	spi_init(1000000, 0);
+	spi_init(2000000, 0);
 	config_init();
+
+	HAL_GPIO_TEST_out();
 
 	char s[25];
 
 	while (1)
 	{
+		HAL_GPIO_TEST_toggle();
 
 		tud_task();
 		hid_task();

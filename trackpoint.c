@@ -299,10 +299,9 @@ void tp_reset(void)
 	   to pull RESET line LOW.
 	   */
 	golo(TPCLK);
-	delay_ms(5);
-	delay_ms(2000);
+	delay_ms(400);
 	gohi(TPCLK);
-	delay_ms(10);
+	delay_ms(200);
 
 	gohi(TPCLK);
 }
