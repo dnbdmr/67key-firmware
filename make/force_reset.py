@@ -6,6 +6,7 @@ from __future__ import print_function
 import serial
 import os.path
 import argparse
+import sys
 from time import sleep
 
 parser = argparse.ArgumentParser(description='Reset an Arduino')
@@ -17,6 +18,8 @@ parser.add_argument('port', nargs=1, help='Serial device e.g. /dev/ttyACM0')
 args = parser.parse_args()
 
 if args.caterina:
+        if os.path.exists('/media/daniel/67KEYBOOT'):
+            sys.exit(0)
         if args.verbose: print('Forcing reset using 1200bps open/close on port %s' % args.port[0])
         ser = serial.Serial(args.port[0], 57600)
         ser.close()
@@ -28,6 +31,8 @@ if args.caterina:
         sleep(1)
 
 elif args.uf2:
+        if os.path.exists('/media/daniel/67KEYBOOT'):
+            sys.exit(0)
         if args.verbose: print('Forcing reset using 1200bps open/close on port %s' % args.port[0])
         ser = serial.Serial(args.port[0], 57600)
         ser.close()
@@ -40,7 +45,7 @@ elif args.uf2:
 
         while not os.path.exists('/media/daniel/ITSYBOOT'):
             if args.verbose: print('Waiting for uf2 to mount')
-            sleep(1)
+            sleep(.6)
 
         if args.verbose: print('Board has mounted after reset')
 
