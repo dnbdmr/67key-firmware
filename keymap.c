@@ -425,7 +425,7 @@ uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0 },
 		{	// Register 5
-			MOUSE_BUTTON_RIGHT ,
+			MOUSE_BUTTON_RIGHT,
 			MOUSE_BUTTON_MIDDLE,
 			MOUSE_BUTTON_LEFT,
 			0,
@@ -508,9 +508,9 @@ uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0 },
 		{	// Register 5
-			0,
-			0,
-			0,
+			MOUSE_BUTTON_FORWARD,
+			MOUSE_BUTTON_MIDDLE,
+			MOUSE_BUTTON_BACKWARD,
 			0,
 			0,
 			0,

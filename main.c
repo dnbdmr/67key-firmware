@@ -356,10 +356,33 @@ void hid_task(void)
 			}
 		}
 
-		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) // Scroll if middle mouse pressed
+		static uint8_t middle_last = 0;
+		static uint8_t middle_move = 0;
+		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed
 			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-4, tpdata.x/-4); //TODO: MAKE CONFIG SETTINGS
-		else
+			middle_move = 1;
+			middle_last = 1;
+		}
+		else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && !middle_last) { // send other button state if just pressed and no movement
+			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
+			middle_last = 1;
+		}
+		else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && middle_move && middle_last) { // just moved, send other keys
+			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
+			middle_move = 0;
+			middle_last = 0;
+		}
+		else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && middle_last) { // didn't move, press and release key
+			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys | MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
+			while( !tud_hid_ready() ) {
+				tud_task();
+			}
+			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
+			middle_last = 0;
+		}
+		else {
 			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
+		}
 	}
 
 	/*------------- Keyboard -------------*/
@@ -479,7 +502,7 @@ int main(void)
 			} else if (s[0] == 'd') {
 				config.debug = !config.debug;
 				cdc_write_num(config.debug, 10);
-			} else if (s[0] == 't') {
+			} else if (s[0] == 'r') {
 				cdc_write_num(tp_readFromRamLocation(0x4a), 10); //TODO: freezes on read/write, sometimes
 				tud_cdc_write_char('\n');
 			} else if (s[0] == 'w') {
