@@ -234,9 +234,9 @@ uint8_t cdc_task(char line[], uint8_t max)
 				pos++;
 			}
 		}
+		tud_cdc_write_flush(); // Freeze without this
 	}
 
-	tud_cdc_write_flush(); // Freeze without this
 
 	if (success) {
 		success = 0;
@@ -262,7 +262,7 @@ void cdc_write_num(int num, uint8_t radix)
 void hid_task(void)
 {
 	// Poll every 5ms TODO: change this?
-	const uint32_t interval_ms = 5;
+	const uint32_t interval_ms = 2;
 	static uint32_t start_ms = 0;
 
 	if ( millis() - start_ms < interval_ms) return; // not enough time
@@ -432,7 +432,7 @@ int main(void)
 
 	while (1)
 	{
-		HAL_GPIO_TEST_toggle();
+		HAL_GPIO_TEST_toggle(); // TODO: DEBUG
 
 		tud_task();
 		hid_task();

@@ -153,8 +153,9 @@ void led_task(void)
 	static uint8_t rgb0_pos = 0;
 	static uint8_t rgb1_pos = 0;
 
-	if (millis() - caps_time > CAPS_BLINK_RATE) {
-		caps_time = millis();
+	uint32_t cur_time = millis();
+	if (cur_time - caps_time > CAPS_BLINK_RATE) {
+		caps_time = cur_time;
 
 		if (state & KEYBOARD_LED_CAPSLOCK) {
 			HAL_GPIO_CAPSLOCK_pmux_toggle();
@@ -163,21 +164,21 @@ void led_task(void)
 			HAL_GPIO_CAPSLOCK_pmuxdis();
 	}
 
-	if (millis() - led1_time > 500) {
-		led1_time = millis();
+	if (cur_time - led1_time > 500) {
+		led1_time = cur_time;
 
 		HAL_GPIO_LED1_pmux_toggle();
 	}
 
-	if ((millis() - rgb1_time) >= 50) {
-		rgb1_time = millis();
+	if ((cur_time - rgb1_time) >= 50) {
+		rgb1_time = cur_time;
 		rgb_wheel(&rgbarray[1], rgb1_pos);
 		rgb_update(rgbarray, RGB_NUM);
 		rgb1_pos += 1;
 	}
 
-	if ((millis() - rgb0_time) >= 20) {
-		rgb0_time = millis();
+	if ((cur_time - rgb0_time) >= 20) {
+		rgb0_time = cur_time;
 		if (rgbarray[0].red == 80)
 			rgb0_pos = 0;
 		if (rgbarray[0].red <= 8)
@@ -203,10 +204,13 @@ void led_off(void)
 {
 	rgb_zero(2);
 	HAL_GPIO_CAPSLOCK_in();
+	HAL_GPIO_CAPSLOCK_pmuxdis();
+	HAL_GPIO_LED1_pmuxdis();
 }
 
 void led_on(void)
 {
 	rgb_update(rgbarray, RGB_NUM);
-	HAL_GPIO_CAPSLOCK_in();
+	HAL_GPIO_LED1_pmux_set(PORT_PMUX_PMUXE_E);
+	HAL_GPIO_CAPSLOCK_pmux_set(PORT_PMUX_PMUXE_E);
 }
