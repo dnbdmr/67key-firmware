@@ -236,6 +236,9 @@ void Reset_Handler(void)
 	/* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
 	NVMCTRL->CTRLB.bit.MANW = 1;
 
+	/* Disable NVM auto power reduction during sleep. (errata reference 1.14.2) */
+	NVMCTRL->CTRLB.bit.SLEEPPRM = 3;
+
 	/* Initialize the C library */
 	__libc_init_array();
 
