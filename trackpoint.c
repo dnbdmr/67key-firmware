@@ -30,6 +30,7 @@
 #include "hal_gpio.h"
 #include "trackpoint.h"
 #include "config.h"
+#include "tusb.h"
 
 static void gohi(uint8_t pin);
 static void golo(uint8_t pin);
@@ -48,6 +49,8 @@ HAL_GPIO_PIN(TP_CLK, A, 4)
 HAL_GPIO_PIN(TP_DATA, A, 3)
 #define TPDATA 3
 
+HAL_GPIO_PIN(SPACEBAR, A, 11)
+
 /*- Implementations ---------------------------------------------------------*/
 
 static volatile uint8_t dataAvailable;
@@ -62,6 +65,8 @@ void tp_init(void)
 	HAL_GPIO_TP_DATA_in();
 	HAL_GPIO_TP_DATA_pullen(1);
 
+	HAL_GPIO_SPACEBAR_pmuxen(PORT_PMUX_PMUXE_A);
+
 	// enable EIC APBA clock line
 	PM->APBAMASK.reg |= PM_APBAMASK_EIC;
 
@@ -70,8 +75,14 @@ void tp_init(void)
 		GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN(0);
 	while(GCLK->STATUS.bit.SYNCBUSY);
 
-	// enable EIC on TP_CLK pin
-	EIC->CONFIG[0].reg |= TP_EIC_CONFIG;
+	// Set up EIC on TP_CLK pin
+	EIC->CONFIG[0].reg |= TP_EIC_CONFIG; //TP_CLK
+	EIC->WAKEUP.reg |= TP_EIC_INTENSET;
+
+	// Set up EIC on Spacebar
+	EIC->CONFIG[1].reg |= EIC_CONFIG_SENSE3_FALL; //Spacebar
+	EIC->WAKEUP.reg |= EIC_WAKEUP_WAKEUPEN11;
+
 	EIC->CTRL.reg = EIC_CTRL_ENABLE; 
 	while(EIC->STATUS.bit.SYNCBUSY);
 	NVIC_EnableIRQ(EIC_IRQn);
@@ -88,7 +99,6 @@ void tp_enableInt(void)
 	HAL_GPIO_TP_CLK_pmuxen(PORT_PMUX_PMUXE_A);
 	while(EIC->STATUS.bit.SYNCBUSY);
 }
-
 static void gohi(uint8_t pin)
 {
 	PORT->Group[0].DIRCLR.reg = (1<<pin); // set as input
@@ -313,6 +323,16 @@ void tp_setSensitivityFactor(uint8_t sensitivityFactor)
 
 void EIC_Handler(void)
 {
-	EIC->INTFLAG.reg |= TP_EIC_INTFLAG;
-	tp_getDataBit();
+	if (EIC->INTFLAG.reg & TP_EIC_INTFLAG) {
+		EIC->INTFLAG.reg |= TP_EIC_INTFLAG;
+		tp_getDataBit();
+	}
+	if (EIC->INTFLAG.reg & EIC_INTFLAG_EXTINT11) {
+		EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT11; //disable spacebar interrupt
+		EIC->INTFLAG.reg |= EIC_INTFLAG_EXTINT11;
+		while(EIC->STATUS.bit.SYNCBUSY);
+	}
+
+	if ( tud_suspended() )
+		tud_remote_wakeup();
 }

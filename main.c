@@ -147,17 +147,23 @@ void usb_setup(void)
 void tud_suspend_cb(bool remote_wakeup_en)
 {
 	(void) remote_wakeup_en;
+
 	led_off();
+
+	/* Enable spacebar interrupt, disable systick, and go to sleep
+	 * setup and EIC_Handler in trackpoint.c */
+	EIC->INTENSET.reg = EIC_INTENSET_EXTINT11; //enable spacebar interrupt
 	SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk); //disable systick
-	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk << SCB_SCR_SLEEPDEEP_Pos;
+	//SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk << SCB_SCR_SLEEPDEEP_Pos;
+	PM->SLEEP.reg |= PM_SLEEP_IDLE(1);
 	__WFI();
+	SysTick_Config(48000); // Restart SysTick at 1ms
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
 	led_on();
-	SysTick_Config(48000); //systick at 1ms
 }
 
 //--------------------------------------------------------------------+
