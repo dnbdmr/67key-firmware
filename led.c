@@ -65,8 +65,8 @@ void rgb_init(void)
 	  TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_PRESCSYNC_RESYNC;
   TC4->COUNT8.CTRLC.reg = TC_CTRLC_INVEN0 | TC_CTRLC_INVEN1;
   TC4->COUNT8.PER.reg = 255;	// for 400Hz
-  TC4->COUNT8.CC[0].reg = 255;	// board led
-  TC4->COUNT8.CC[1].reg = 100;	// Capslock
+  TC4->COUNT8.CC[0].reg = 10;	// board led
+  TC4->COUNT8.CC[1].reg = 255;	// Capslock
   TC4->COUNT8.COUNT.reg = 0;
   TC4->COUNT8.CTRLA.reg |= TC_CTRLA_ENABLE;
 
@@ -202,8 +202,7 @@ void led_brightness(uint8_t bright) {
 
 void led_off(void)
 {
-	rgb_zero(2);
-	HAL_GPIO_CAPSLOCK_in();
+	rgb_zero(RGB_NUM);
 	HAL_GPIO_CAPSLOCK_pmuxdis();
 	HAL_GPIO_LED1_pmuxdis();
 }
@@ -211,6 +210,4 @@ void led_off(void)
 void led_on(void)
 {
 	rgb_update(rgbarray, RGB_NUM);
-	HAL_GPIO_LED1_pmux_set(PORT_PMUX_PMUXE_E);
-	HAL_GPIO_CAPSLOCK_pmux_set(PORT_PMUX_PMUXE_E);
 }

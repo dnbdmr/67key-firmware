@@ -9,7 +9,7 @@ __TODO__
 [ ] Set serial number in descriptor? check uf2 source
 [ ] Merge spi master and matrix?
 [ ] Make force reset universal
-[ ] Implement sleep and wakeup. Spacebar. TP interrupt? Remove systick disable. Disable clocks.
+[ ] Implement sleep and wakeup. Spacebar. TP interrupt? Disable clocks. Linux not setting wakeup enabled by default, works when changed. Must be hid only?
 [ ] Turn off unused clocks? APB ADC. Whatever was started by uf2
 [x] set up modifier reporting
 [x] set up system for leds

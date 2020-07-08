@@ -19,6 +19,7 @@ CFLAGS += -MD -MP -MT $(BUILD)/$(*F).o -MF $(BUILD)/$(@F).d
 LDFLAGS += -mcpu=cortex-m0plus -mthumb
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,--start-group -lm -Wl,--end-group
+LDFLAGS += --specs=nano.specs
 LDFLAGS += -Wl,-Map=$(BUILD)/$(BIN).map
 LDFLAGS += -Wl,--script=../linker/samd21g18.ld
 
