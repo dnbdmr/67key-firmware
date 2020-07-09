@@ -45,7 +45,9 @@
 #include "trackpoint.h"
 
 /*- Definitions -------------------------------------------------------------*/
+
 HAL_GPIO_PIN(TEST, A, 14)
+
 /*- Implementations ---------------------------------------------------------*/
 
 volatile uint32_t msticks = 0;
@@ -170,7 +172,6 @@ void tud_resume_cb(void)
 // USB CDC
 //--------------------------------------------------------------------+
 
-//-----------------------------------------------------------------------------
 // Invoked when cdc when line state changed e.g connected/disconnected
 void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 {
@@ -180,6 +181,7 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 	if ( dtr && rts )
 	{
 		// print initial message when connected
+		tud_cdc_write_str("67key config\n\n");
 	}
 
 	//Reset into bootloader when baud is 1200 and dtr unasserted
@@ -195,32 +197,6 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 }
 
 //-----------------------------------------------------------------------------
-// Invoked when CDC interface received data from host
-/*
-   void tud_cdc_rx_cb(uint8_t itf)
-   {
-   (void) itf;
-//tud_cdc_write_str("Stop That!!\n");
-//tud_cdc_read_flush();
-
-if ( tud_cdc_connected() )
-{
-// connected and there are data available
-if ( tud_cdc_available() )
-{
-uint8_t buf[64];
-// read and echo back
-uint8_t count = tud_cdc_read(buf, sizeof(buf));
-
-for(uint32_t i=0; i<count; i++)
-{
-tud_cdc_write_char(buf[i]);
-}
-}
-}
-}
-*/
-
 /* Retrieves full line from cdc, returns true when found */
 uint8_t cdc_task(char line[], uint8_t max)
 {
