@@ -1,0 +1,2 @@
+# UDEV Rule to enable remote wakeup from 67 keyboard
+ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="usb", ATTRS{idVendor}=="cafe", ATTRS{idProduct}=="4005", ATTR{power/wakeup}="enabled"
