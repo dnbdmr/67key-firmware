@@ -23,6 +23,25 @@ HAL_GPIO_PIN(LED1,	A, 22);
 
 static uint8_t state;
 
+uint8_t gamma8[] = {
+	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+	0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+	1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+	2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+	5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+	10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+	17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+	25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+	37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+	51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+	69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+	90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
+	115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
+	144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
+	177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
+	215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
+
+
 void rgb_init(void)
 {
 	//set up RGB SPI
@@ -50,7 +69,7 @@ void rgb_init(void)
   rgbarray[0].red = 0x0;
   rgbarray[0].blue = 0x0;
   rgbarray[0].green = 0x0;
-  rgbarray[0].bright = 0x01;
+  rgbarray[0].bright = 0x05;
   rgbarray[1].red = 0xFF;
   rgbarray[1].blue = 0x0;
   rgbarray[1].green = 0x00;
@@ -125,22 +144,22 @@ void rgb_zero(uint8_t num)
 void rgb_wheel(RGB_type *led, uint8_t pos)
 {
 	if (pos < 85) {
-		led->blue = 85 - pos;
-		led->green = pos;
+		led->blue = gamma8[85 - pos];
+		led->green = gamma8[pos];
 		led->red = 0;
 		return;
 	}
 	if (pos < 170) {
 		pos -= 85;
 		led->blue = 0;
-		led->green = 85 - pos;
-		led->red = pos * 2;
+		led->green = gamma8[85 - pos];
+		led->red = gamma8[pos * 2];
 		return;
 	}
 	pos -= 170;
-	led->blue = pos;
+	led->blue = gamma8[pos];
 	led->green = 0;
-	led->red = 170 - pos * 2;
+	led->red = gamma8[170 - pos * 2];
 	return;
 }
 
@@ -151,6 +170,7 @@ void led_task(void)
 	static uint32_t rgb0_time = 0;
 	static uint32_t rgb1_time = 0;
 	static uint8_t rgb0_pos = 0;
+	static uint8_t rgb0_dir = 0;
 	static uint8_t rgb1_pos = 0;
 
 	uint32_t cur_time = millis();
@@ -174,19 +194,20 @@ void led_task(void)
 		rgb1_time = cur_time;
 		rgb_wheel(&rgbarray[1], rgb1_pos);
 		rgb_update(rgbarray, RGB_NUM);
-		rgb1_pos += 1;
+		rgb1_pos += 4;
 	}
 
 	if ((cur_time - rgb0_time) >= 20) {
 		rgb0_time = cur_time;
-		if (rgbarray[0].red == 80)
-			rgb0_pos = 0;
-		if (rgbarray[0].red <= 8)
-			rgb0_pos = 1;
-		if (rgb0_pos)
-			rgbarray[0].red++;
+		if (rgb0_pos >= 172)
+			rgb0_dir = 0;
+		if (rgb0_pos <= 72)
+			rgb0_dir = 1;
+		if (rgb0_dir)
+			rgb0_pos+=4;
 		else
-			rgbarray[0].red--;
+			rgb0_pos-=4;
+		rgbarray[0].blue = gamma8[rgb0_pos];
 		rgb_update(rgbarray, RGB_NUM);
 	}
 }
