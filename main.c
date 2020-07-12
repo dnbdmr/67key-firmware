@@ -153,12 +153,16 @@ void tud_suspend_cb(bool remote_wakeup_en)
 	led_off();
 
 	/* Enable spacebar interrupt, disable systick, and go to sleep
-	 * setup and EIC_Handler in trackpoint.c */
+	 * EIC setup and EIC_Handler are in trackpoint.c */
 	EIC->INTENSET.reg = EIC_INTENSET_EXTINT11; //enable spacebar interrupt
+	EIC->CONFIG[0].bit.SENSE4 = EIC_CONFIG_SENSE4_LOW_Val; //TP_CLK
+
 	SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk); //disable systick
-	//SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk << SCB_SCR_SLEEPDEEP_Pos;
-	PM->SLEEP.reg |= PM_SLEEP_IDLE(1);
+	//SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Won't wake up from deep sleep
+	PM->SLEEP.reg |= PM_SLEEP_IDLE(2);
+
 	__WFI();
+
 	SysTick_Config(48000); // Restart SysTick at 1ms
 }
 

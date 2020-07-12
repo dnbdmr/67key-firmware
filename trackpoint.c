@@ -80,7 +80,8 @@ void tp_init(void)
 	EIC->WAKEUP.reg |= TP_EIC_INTENSET;
 
 	// Set up EIC on Spacebar
-	EIC->CONFIG[1].reg |= EIC_CONFIG_SENSE3_FALL; //Spacebar
+	//EIC->CONFIG[1].reg |= EIC_CONFIG_SENSE3_FALL; //Spacebar
+	EIC->CONFIG[1].reg |= EIC_CONFIG_SENSE3_LOW; //Spacebar
 	EIC->WAKEUP.reg |= EIC_WAKEUP_WAKEUPEN11;
 
 	EIC->CTRL.reg = EIC_CTRL_ENABLE; 
@@ -324,6 +325,10 @@ void tp_setSensitivityFactor(uint8_t sensitivityFactor)
 void EIC_Handler(void)
 {
 	if (EIC->INTFLAG.reg & TP_EIC_INTFLAG) {
+		if (EIC->CONFIG[0].bit.SENSE4 == EIC_CONFIG_SENSE4_LOW_Val) {
+			EIC->CONFIG[0].bit.SENSE4 = EIC_CONFIG_SENSE4_FALL_Val; //TP_CLK
+			while(EIC->STATUS.bit.SYNCBUSY);
+		}
 		EIC->INTFLAG.reg |= TP_EIC_INTFLAG;
 		tp_getDataBit();
 	}
