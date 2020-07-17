@@ -47,6 +47,7 @@
 /*- Definitions -------------------------------------------------------------*/
 
 HAL_GPIO_PIN(TEST, A, 14)
+HAL_GPIO_PIN(TESTMID, A, 15) // TODO: DEBUG
 
 /*- Implementations ---------------------------------------------------------*/
 
@@ -108,13 +109,25 @@ static void sys_init(void)
 		SYSCTRL_DFLLCTRL_CCDIS |  // Disable Chill Cycle
 		SYSCTRL_DFLLCTRL_RUNSTDBY |  // Run during standby for USB wakeup interrupts
 		SYSCTRL_DFLLCTRL_MODE;   // Set Closed Loop Mode
-	//SYSCTRL_DFLLCTRL_STABLE; // Fine calibration register locks (stable) after fine lock, ignored with USBCRM
+		//SYSCTRL_DFLLCTRL_STABLE; // Fine calibration register locks (stable) after fine lock, ignored with USBCRM
 
 	while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY)); // Wait for DFLL sync complete
 
 	//Setup Generic Clock Generator 0 with DFLL48M as source:
-	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(0) | GCLK_GENCTRL_SRC(GCLK_SOURCE_DFLL48M) |
-		GCLK_GENCTRL_RUNSTDBY | GCLK_GENCTRL_GENEN;
+	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(0) |
+		GCLK_GENCTRL_SRC(GCLK_SOURCE_DFLL48M) |
+		GCLK_GENCTRL_IDC |
+		//GCLK_GENCTRL_RUNSTDBY | // Only has an effect with output enabled
+		GCLK_GENCTRL_GENEN;
+	while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY);
+
+	// Set up GCLK1 as output from DFLL48M w/divider TODO: DEBUG
+	HAL_GPIO_TESTMID_pmuxen(PORT_PMUX_PMUXE_H);
+	GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(1) | GCLK_GENCTRL_SRC(GCLK_SOURCE_DFLL48M) |
+		GCLK_GENCTRL_RUNSTDBY |
+		GCLK_GENCTRL_OE |
+		GCLK_GENCTRL_GENEN;
+	GCLK->GENDIV.reg = GCLK_GENDIV_ID(1) | GCLK_GENDIV_DIV(4800);
 	while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY);
 
 	//Disable OSC8M and generator 2 (enabled by UF2 bootloader)
@@ -157,13 +170,13 @@ void tud_suspend_cb(bool remote_wakeup_en)
 	EIC->INTENSET.reg = EIC_INTENSET_EXTINT11; //enable spacebar interrupt
 	EIC->CONFIG[0].bit.SENSE4 = EIC_CONFIG_SENSE4_LOW_Val; //TP_CLK
 
-	SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk); //disable systick
-	//SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk; // Won't wake up from deep sleep
-	PM->SLEEP.reg |= PM_SLEEP_IDLE(2);
+	SysTick->CTRL &= ~(SysTick_CTRL_TICKINT_Msk); //disable systick interrupt
+	PM->SLEEP.reg |= PM_SLEEP_IDLE(2);	// Set idle
+	//SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;	// Set deep sleep, not working
 
 	__WFI();
 
-	SysTick_Config(48000); // Restart SysTick at 1ms
+	SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk; //enable systick interrupt
 }
 
 // Invoked when usb bus is resumed

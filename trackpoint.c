@@ -80,7 +80,6 @@ void tp_init(void)
 	EIC->WAKEUP.reg |= TP_EIC_INTENSET;
 
 	// Set up EIC on Spacebar
-	//EIC->CONFIG[1].reg |= EIC_CONFIG_SENSE3_FALL; //Spacebar
 	EIC->CONFIG[1].reg |= EIC_CONFIG_SENSE3_LOW; //Spacebar
 	EIC->WAKEUP.reg |= EIC_WAKEUP_WAKEUPEN11;
 
