@@ -65,7 +65,7 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			HID_KEY_T,
 			HID_KEY_6 },
 		{	// Register 6
-			HID_KEY_Y,
+			HID_KEY_V,
 			HID_KEY_C,
 			HID_KEY_F,
 			HID_KEY_D,
@@ -118,8 +118,8 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			0,
-			0 },
+			HID_KEY_F12,
+			HID_KEY_F11 },
 		{	// Register 3
 			0,
 			0,
@@ -127,8 +127,8 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			0,
-			0 },
+			HID_KEY_F10,
+			HID_KEY_F9 },
 		{	// Register 4
 			0,
 			0,
@@ -136,8 +136,8 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			0,
-			0 },
+			HID_KEY_F8,
+			HID_KEY_F7 },
 		{	// Register 5
 			0,
 			0,
@@ -146,7 +146,7 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			0 },
+			HID_KEY_F6 },
 		{	// Register 6
 			0,
 			0,
@@ -154,8 +154,8 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			0,
-			0 },
+			HID_KEY_F5,
+			HID_KEY_F4 },
 		{	// Register 7
 			0,
 			0,
@@ -163,8 +163,8 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			0,
-			0 },
+			HID_KEY_F3,
+			HID_KEY_F2 },
 		{	// Register 8
 			0,
 			0,
@@ -172,7 +172,7 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 			0,
 			HID_KEY_CAPS_LOCK,
 			0,
-			0,
+			HID_KEY_F1,
 			0 }
 	}
 };

@@ -15,6 +15,7 @@ tud\_descriptor\_string\_cb
 - [ ] Make force reset universal
 - [ ] Turn off unused clocks? APB ADC. Whatever was started by uf2
 - [ ] Figure out clean way to have keys do things outside of keymap
+- [ ] Set up Fn lock
 - [x] Wakeup from TP and spacebar working, with idle(1). Standby not working, must
 set up low level interrupt and clocks. Linux not setting wakeup enabled by
 default, works when changed. Must be hid only? Added udev rule from archwiki.
