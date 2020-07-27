@@ -10,20 +10,20 @@ uint8_t prev_keys[MATRIX_REG_COUNT];
 
 void print_keys(uint8_t keyarray[], uint8_t num) 
 {
-	if (!tud_cdc_connected() && tud_cdc_available())
+	if (!tud_cdc_connected() && tud_cdc_write_available() > 20)
 		return;
+	tud_cdc_write_char('\n');
 	tud_cdc_write_str("0b");
 	for (uint8_t a = 0; a < num; a++) {
+		while (tud_cdc_write_available() < 20) {
+			tud_cdc_write_flush();
+			tud_task();
+		}
 		for (uint8_t i = 0; i < 8; i++) {
 			tud_cdc_write_char((keyarray[a] & (1 << i)) ? '1' : '0');
-			while (tud_cdc_write_available() < 12) {
-				tud_cdc_write_flush();
-				tud_task();
-			}
 		}
 		tud_cdc_write_char(' ');
 	}
-	tud_cdc_write_char('\n');
 }
 
 uint8_t shift_task(void) {

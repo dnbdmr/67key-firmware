@@ -310,10 +310,6 @@ void hid_task(void)
 				tud_cdc_write_str("\nmouse y: ");
 				cdc_write_num(tpdata.y, 10);
 			}
-			while (tud_cdc_write_available() < 30) {
-				tud_cdc_write_flush();
-				tud_task();
-			}
 		}
 
 		static uint8_t middle_last = 0;
@@ -360,20 +356,18 @@ void hid_task(void)
 		read_modifiers(&modifiers);
 
 		if (config.debug) {
-			tud_cdc_write_str("Mods: ");
+			while (tud_cdc_write_available() < 30) {
+				tud_cdc_write_flush();
+				tud_task();
+			}
+			tud_cdc_write_str("\nMods: ");
 			cdc_write_num(modifiers, 2);
-			tud_cdc_write_char('\n');
-			tud_cdc_write_str("Codes:");
+			tud_cdc_write_str("\nCodes:");
 			for(uint8_t i = 0; i < 6; i++) {
 				tud_cdc_write_char('\t');
 				cdc_write_num(keycode[i], 10);
 			}
 			tud_cdc_write_char('\n');
-			tud_cdc_write_char('\n');
-			while (tud_cdc_write_available() < 30) {
-				tud_cdc_write_flush();
-				tud_task();
-			}
 		}
 
 		tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
