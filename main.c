@@ -28,10 +28,6 @@
 
 /*- Includes ----------------------------------------------------------------*/
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdalign.h>
-#include <string.h>
 #include "samd21.h"
 #include "hal_gpio.h"
 #include "nvm_data.h"
@@ -226,12 +222,13 @@ uint8_t cdc_task(char line[], uint8_t max)
 
 		for (uint8_t i=0; i<count; i++) {
 			tud_cdc_write_char(buf[i]);
-			if (pos < max-1) {
-				if ((line[pos] = buf[i]) == '\n') {
+			if (pos <= max-1) {
+				if ((line[pos] = buf[i]) == '\n')
 					success = 1;
-				}
 				pos++;
 			}
+			else // Reset count if over max length
+				pos = 0;
 		}
 		tud_cdc_write_flush(); // Freeze without this
 	}
@@ -298,14 +295,21 @@ void hid_task(void)
 		}
 
 		if (config.debug) {
-			tud_cdc_write_str("mousekeys: 0b");
-			cdc_write_num(mousekeys, 2);
-			tud_cdc_write_str("\nmouse x: ");
-			cdc_write_num(tpdata.x, 10);
-			tud_cdc_write_char('\n');
-			tud_cdc_write_str("mouse y: ");
-			cdc_write_num(tpdata.y, 10);
-			tud_cdc_write_char('\n');
+			while (tud_cdc_write_available() < 30) {
+				tud_cdc_write_flush();
+				tud_task();
+			}
+
+			if ( mousekeys ) {
+				tud_cdc_write_str("\nmousekeys: 0b");
+				cdc_write_num(mousekeys, 2);
+			}
+			if ( tpdata.x || tpdata.y ) {
+				tud_cdc_write_str("\nmouse x: ");
+				cdc_write_num(tpdata.x, 10);
+				tud_cdc_write_str("\nmouse y: ");
+				cdc_write_num(tpdata.y, 10);
+			}
 			while (tud_cdc_write_available() < 30) {
 				tud_cdc_write_flush();
 				tud_task();
@@ -315,7 +319,7 @@ void hid_task(void)
 		static uint8_t middle_last = 0;
 		static uint8_t middle_move = 0;
 		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed
-			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-4, tpdata.x/-4); //TODO: MAKE CONFIG SETTINGS
+			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-2, tpdata.x/-2); //TODO: MAKE CONFIG SETTINGS
 			middle_move = 1;
 			middle_last = 1;
 		}
