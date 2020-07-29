@@ -8,7 +8,7 @@ set?
 - [ ] Make tp reset non blocking?
 - [ ] uf2: turn down brightness on rgbs
 - [ ] sends 3 reports whenever any key changes. problem?
-- [ ] Implement debounce?
+- [ ] Implement debounce? Does happen occasionally.
 - [ ] Set serial number in descriptor? check uf2 source. add to
 tud\_descriptor\_string\_cb
 - [ ] Merge spi master and matrix?
