@@ -41,7 +41,6 @@ SRCS += \
   ../usb_descriptors.c \
   ../led.c \
   ../spi_master.c \
-  ../adc.c \
   ../trackpoint.c \
   ../config.c \
   ../matrix.c \
