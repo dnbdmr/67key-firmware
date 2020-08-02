@@ -1,13 +1,14 @@
 #include "config.h"
 
-config_type config;
+config_type config = {
+	.debug = 0,
+	.invertx = 1,
+	.inverty = 1,
+	.swapxy = 1,
+	.tp_sensitivity = 78
+};
 
 void config_init(void)
 {
-	config.debug = 0;
-	config.invertx = 1;
-	config.inverty = 1;
-	config.swapxy = 1;
-	config.tp_sensitivity = 90;
 }
 

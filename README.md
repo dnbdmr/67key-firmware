@@ -3,8 +3,6 @@
 ## TODO
 
 - [ ] Finish keymap/layers
-- [ ] tp reading and writing from ram stalls sometimes. dataAvailable not being
-set?
 - [ ] Make tp reset non blocking?
 - [ ] uf2: turn down brightness on rgbs
 - [ ] sends 3 reports whenever any key changes. problem?
@@ -16,6 +14,8 @@ tud\_descriptor\_string\_cb
 - [ ] Turn off unused clocks? APB ADC. Whatever was started by uf2
 - [ ] Figure out clean way to have keys do things outside of keymap
 - [ ] Set up Fn lock
+- [x] tp reading and writing from ram stalls sometimes. dataAvailable not being
+set? Done, set up timeout in tp\_getDataBit().
 - [x] Wakeup from TP and spacebar working, with idle(1). Standby not working, must
 set up low level interrupt and clocks. Linux not setting wakeup enabled by
 default, works when changed. Must be hid only? Added udev rule from archwiki.

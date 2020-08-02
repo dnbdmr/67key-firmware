@@ -451,6 +451,9 @@ int main(void)
 				uint32_t sens = atoi((const char *)&s[1]);
 				tp_setSensitivityFactor(sens);
 				tud_cdc_write_char('1');
+			} else if (s[0] == 'e') {
+				cdc_write_num(config.tp_sensitivity, 10);
+				tud_cdc_write_char('\n');
 			}
 		}
 	}

@@ -31,6 +31,7 @@
 #include "trackpoint.h"
 #include "config.h"
 #include "tusb.h"
+#include "utils.h"
 
 static void gohi(uint8_t pin);
 static void golo(uint8_t pin);
@@ -89,7 +90,7 @@ void tp_init(void)
 
 	tp_reset();
 	tp_setStreamMode();
-	//tp_setSensitivityFactor(config.tp_sensitivity);
+	tp_setSensitivityFactor(config.tp_sensitivity);
 	tp_enableInt();
 }
 
@@ -99,16 +100,17 @@ void tp_enableInt(void)
 	HAL_GPIO_TP_CLK_pmuxen(PORT_PMUX_PMUXE_A);
 	while(EIC->STATUS.bit.SYNCBUSY);
 }
-static void gohi(uint8_t pin)
+
+INLINE void gohi(uint8_t pin)
 {
 	PORT->Group[0].DIRCLR.reg = (1<<pin); // set as input
-	PORT->Group[0].OUTSET.reg = (1<<pin); // enable pullup
+	//PORT->Group[0].OUTSET.reg = (1<<pin); // enable pullup
 }
 
-static void golo(uint8_t pin)
+INLINE void golo(uint8_t pin)
 {
-	PORT->Group[0].DIRSET.reg = (1<<pin); // set as output
 	PORT->Group[0].OUTCLR.reg = (1<<pin); // set low
+	PORT->Group[0].DIRSET.reg = (1<<pin); // set as output
 }
 
 /* write a uint8_t to the PS2 device */
@@ -147,11 +149,9 @@ void tp_write(uint8_t data)
 	}
 	// parity bit
 	if (parity)
-	{
 		gohi(TPDATA);
-		} else {
+	else
 		golo(TPDATA);
-	}
 	// clock cycle - like ack.
 	while (!HAL_GPIO_TP_CLK_read())
 	;
@@ -253,10 +253,23 @@ void tp_setStreamMode(void)
 void tp_getDataBit(void)
 {
 	static volatile uint8_t bitcount;
-	static volatile uint8_t n;
-	static volatile uint8_t val;
 	static volatile uint8_t incoming;
-	static volatile uint8_t counter;
+	static volatile uint8_t bytecount;
+	static volatile uint32_t timeout;
+
+	uint8_t n = 0;
+	uint8_t val = 0;
+
+	/* Reset counters if we've waited more than 11ms. We are just starting a stream */
+	if ((millis() - timeout) > 11) {
+		if (bytecount) {
+			bitcount = 0;
+			incoming = 0;
+			bytecount = 0;
+		}
+	}
+	timeout = millis();
+
 	dataAvailable = 0;
 
 	val = (HAL_GPIO_TP_DATA_read() ? 1 : 0);
@@ -267,20 +280,20 @@ void tp_getDataBit(void)
 	bitcount++;
 
 	if(bitcount == 11) {
-		switch(counter) {
+		switch(bytecount) {
 			case 0:
 				data.state = incoming;
-				counter++;
+				bytecount++;
 				break;
 
 			case 1:
 				data.x = incoming;
-				counter++;
+				bytecount++;
 				break;
 
 			case 2:
 				data.y = incoming;
-				counter = 0;
+				bytecount = 0;
 				dataAvailable = 1;
 				break;
 		}
@@ -311,7 +324,7 @@ void tp_reset(void)
 	golo(TPCLK);
 	delay_ms(400);
 	gohi(TPCLK);
-	delay_ms(200);
+	delay_ms(50);
 
 	gohi(TPCLK);
 }

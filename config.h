@@ -11,7 +11,7 @@ typedef struct config_tag {
 	uint8_t tp_sensitivity;
 } config_type;
 
-extern struct config_tag config;
+extern config_type config;
 
 void config_init(void);
 
