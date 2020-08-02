@@ -5,9 +5,15 @@
 
 typedef struct config_tag {
 	uint8_t debug;
-	uint8_t invertx;
-	uint8_t inverty;
+
+	int8_t scalex;
+	int8_t scaley;
 	uint8_t swapxy;
+
+	int8_t scrollscalex;
+	int8_t scrollscaley;
+	uint8_t scrollswapxy;
+
 	uint8_t tp_sensitivity;
 } config_type;
 

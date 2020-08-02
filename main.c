@@ -283,15 +283,6 @@ void hid_task(void)
 
 		if (tp_reportAvailable()) {
 			tpdata = tp_getStreamReport();
-			if (config.swapxy) {
-				uint8_t temp = tpdata.x;
-				tpdata.x = tpdata.y;
-				tpdata.y = temp;
-			}
-			if (config.invertx)
-				tpdata.x = tpdata.x * -1;
-			if (config.inverty)
-				tpdata.y = tpdata.y * -1;
 		}
 
 		if (config.debug) {
@@ -314,12 +305,15 @@ void hid_task(void)
 
 		static uint8_t middle_last = 0;
 		static uint8_t middle_move = 0;
-		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed
-			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/-2, tpdata.x/-2); //TODO: MAKE CONFIG SETTINGS
+		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed and movement
+			if (config.scrollswapxy)
+				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.x/config.scrollscaley, tpdata.y/config.scrollscalex);
+			else
+				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/config.scrollscaley, tpdata.x/config.scrollscalex);
 			middle_move = 1;
 			middle_last = 1;
 		}
-		else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && !middle_last) { // send other button state if just pressed and no movement
+		else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && !middle_last) { // send other button state if just pressed and no movement, wait for release
 			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
 			middle_last = 1;
 		}
@@ -330,14 +324,16 @@ void hid_task(void)
 		}
 		else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && middle_last) { // didn't move, press and release key
 			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys | MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
-			while( !tud_hid_ready() ) {
+			while( !tud_hid_ready() )
 				tud_task();
-			}
 			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
 			middle_last = 0;
 		}
-		else {
-			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x, tpdata.y, 0, 0);
+		else {	// regular move or Fn pressed for middle drag
+			if (config.swapxy)
+				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.y/config.scalex, tpdata.x/config.scaley, 0, 0);
+			else
+				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x/config.scalex, tpdata.y/config.scaley, 0, 0);
 		}
 	}
 
@@ -445,15 +441,12 @@ int main(void)
 				config.debug = !config.debug;
 				cdc_write_num(config.debug, 10);
 			} else if (s[0] == 'r') {
-				cdc_write_num(tp_readFromRamLocation(0x4a), 10); //TODO: freezes on read/write, sometimes
+				cdc_write_num(tp_readFromRamLocation(0x4a), 10);
 				tud_cdc_write_char('\n');
 			} else if (s[0] == 'w') {
 				uint32_t sens = atoi((const char *)&s[1]);
 				tp_setSensitivityFactor(sens);
 				tud_cdc_write_char('1');
-			} else if (s[0] == 'e') {
-				cdc_write_num(config.tp_sensitivity, 10);
-				tud_cdc_write_char('\n');
 			}
 		}
 	}
