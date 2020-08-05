@@ -14,6 +14,8 @@ tud\_descriptor\_string\_cb
 - [ ] Turn off unused clocks? APB ADC. Whatever was started by uf2
 - [ ] Figure out clean way to have keys do things outside of keymap
 - [ ] Set up Fn lock
+- [ ] Check speedup of inlining millis()
+- [ ] limit scrolling to 1 at a time
 - [x] tp reading and writing from ram stalls sometimes. dataAvailable not being
 set? Done, set up timeout in tp\_getDataBit().
 - [x] Wakeup from TP and spacebar working, with idle(1). Standby not working, must

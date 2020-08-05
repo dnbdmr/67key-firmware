@@ -559,6 +559,7 @@ void read_mousekeys(uint8_t *mousekeys, uint8_t *fn_key)
 	return;
 }
 
+// TODO: should technically be uint16_t
 uint8_t keymap_consumer[2][MATRIX_REG_COUNT][8] =
 {
 	{	//Layer 0
