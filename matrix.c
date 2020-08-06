@@ -27,28 +27,44 @@ void print_keys(uint8_t keyarray[], uint8_t num)
 }
 
 uint8_t shift_task(void) {
-	uint8_t keys[MATRIX_REG_COUNT];
+	static uint32_t calltimer;
+	static uint32_t bouncetimer;
+	static uint8_t stable = 0;
 
-	/*
-	static uint32_t time;
-	if ((millis() - time) < 10)
+	if ((millis() - calltimer) < config.pollms)
 		return 0;
-	time = millis();
-	*/
+	calltimer = millis();
+
+	uint8_t new_keys[MATRIX_REG_COUNT];
 
 	spi_ss(1);
 	for (int i = 0; i < MATRIX_REG_COUNT; i++) {
-		keys[i] = spi_write_byte(0);
+		new_keys[i] = spi_write_byte(0);
 		if (MATRIX_REG_INVERT & (1<<i))
-			keys[i] = ~keys[i];
+			new_keys[i] = ~new_keys[i];
 	}
 	spi_ss(0);
 
-	if (memcmp(prev_keys, keys, sizeof(prev_keys))) {
-		memcpy(prev_keys, keys, sizeof(prev_keys));
+	// If keys changed, copy new to old and reset timer
+	if (memcmp(prev_keys, new_keys, sizeof(prev_keys))) {
+		memcpy(prev_keys, new_keys, sizeof(prev_keys));
 		if (config.debug)
-			print_keys(keys, MATRIX_REG_COUNT);
-		return 1;
+			print_keys(new_keys, MATRIX_REG_COUNT);
+		bouncetimer = millis();
+		stable = 0;
+	} 
+
+	if ((millis() - bouncetimer) >= config.debouncems) { // and debouncems has passed
+		if (stable) { // we've already sent update
+			return 0;
+		}
+		else { // we haven't sent update yet
+			stable = 1;
+			return 1;
+		}
 	}
+	else // not enough time
+		return 0;
+
 	return 0;
 }
