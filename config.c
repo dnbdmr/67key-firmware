@@ -3,6 +3,9 @@
 config_type config = {
 	.debug = 0,
 
+	.debouncems = 5,
+	.pollms = 1,
+
 	.scalex = -1,
 	.scaley = -1,
 	.swapxy = 1,
@@ -17,4 +20,3 @@ config_type config = {
 void config_init(void)
 {
 }
-

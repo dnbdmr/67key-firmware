@@ -6,6 +6,9 @@
 typedef struct config_tag {
 	uint8_t debug;
 
+	uint8_t debouncems;
+	uint8_t pollms;
+
 	int8_t scalex;
 	int8_t scaley;
 	uint8_t swapxy;

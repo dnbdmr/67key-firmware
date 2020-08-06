@@ -257,13 +257,6 @@ void cdc_write_num(int num, uint8_t radix)
 
 void hid_task(void)
 {
-	// Poll every 5ms TODO: change this?
-	const uint32_t interval_ms = 2;
-	static uint32_t start_ms = 0;
-
-	if ( millis() - start_ms < interval_ms) return; // not enough time
-	start_ms += interval_ms;
-
 	uint32_t const btn = shift_task();
 
 	/*------------- Mouse -------------*/
