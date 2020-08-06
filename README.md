@@ -6,7 +6,6 @@
 - [ ] Make tp reset non blocking?
 - [ ] uf2: turn down brightness on rgbs
 - [ ] sends 3 reports whenever any key changes. problem?
-- [ ] Implement debounce? Does happen occasionally.
 - [ ] Set serial number in descriptor? check uf2 source. add to
 tud\_descriptor\_string\_cb
 - [ ] Merge spi master and matrix?
@@ -16,6 +15,7 @@ tud\_descriptor\_string\_cb
 - [ ] Set up Fn lock
 - [ ] Check speedup of inlining millis()
 - [ ] limit scrolling to 1 at a time
+- [x] Implement debounce? Does happen occasionally.
 - [x] tp reading and writing from ram stalls sometimes. dataAvailable not being
 set? Done, set up timeout in tp\_getDataBit().
 - [x] Wakeup from TP and spacebar working, with idle(1). Standby not working, must
