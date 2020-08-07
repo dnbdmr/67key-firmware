@@ -33,13 +33,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "samd21.h"
 #include "hal_gpio.h"
 
 /*- Definitions -------------------------------------------------------------*/
-HAL_GPIO_PIN(SDA,             A, 22); //ItsyBitsy pin 
-HAL_GPIO_PIN(SCL,             A, 23); //ItsyBitsy pin
+HAL_GPIO_PIN(SDA,             A, 16);
+HAL_GPIO_PIN(SCL,             A, 17);
 #define I2C_SERCOM            SERCOM3
-#define I2C_SERCOM_PMUX       PORT_PMUX_PMUXE_C_Val
+#define I2C_SERCOM_PMUX       PORT_PMUX_PMUXE_D_Val
 #define I2C_SERCOM_GCLK_ID    SERCOM3_GCLK_ID_CORE
 #define I2C_SERCOM_CLK_GEN    0
 #define I2C_SERCOM_APBCMASK   PM_APBCMASK_SERCOM3
@@ -52,12 +53,6 @@ enum
   I2C_TRANSFER_READ  = 1,
 };
 
-enum
-{
-  I2C_PINS_SDA = (1 << 0),
-  I2C_PINS_SCL = (1 << 1),
-};
-
 /*- Prototypes --------------------------------------------------------------*/
 int i2c_init(int freq);
 bool i2c_start(int addr);
@@ -65,7 +60,5 @@ bool i2c_stop(void);
 bool i2c_read_byte(uint8_t *byte, bool last);
 bool i2c_write_byte(uint8_t byte);
 bool i2c_busy(int addr);
-void i2c_pins(int mask, int value);
 
 #endif // _I2C_MASTER_H_
-

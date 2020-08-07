@@ -405,12 +405,12 @@ void tud_hid_set_report_cb(uint8_t report_id, hid_report_type_t report_type, uin
 int main(void)
 {
 	sys_init();
+	config_init();
 	rgb_init();
 	usb_setup();
 	tp_init(); // stalls for >1sec, place before usb
 	tusb_init();
 	spi_init(2000000, 0);
-	config_init();
 
 	HAL_GPIO_TEST_out();
 
@@ -440,6 +440,13 @@ int main(void)
 				uint32_t sens = atoi((const char *)&s[1]);
 				tp_setSensitivityFactor(sens);
 				tud_cdc_write_char('1');
+			} else if (s[0] == 'x') {
+				cdc_write_num(config_check_version(), 10);
+				tud_cdc_write_char('\n');
+			} else if (s[0] == 'o') {
+				config_write_eeprom();
+			} else if (s[0] == 'i') {
+				config_read_eeprom();
 			}
 		}
 	}

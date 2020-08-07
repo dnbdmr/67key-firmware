@@ -38,15 +38,15 @@
 //-----------------------------------------------------------------------------
 int i2c_init(int freq)
 {
-  //int baud =((float)F_CPU / freq - (float)F_CPU * T_RISE - 10.0) / 2.0;
-  int baud = 240; //floats are huge, same as above with 48e6 and 100k
+  int baud =((float)F_CPU / freq - (float)F_CPU * T_RISE - 10.0) / 2.0; // TODO: float adds ~14k
+  //int baud = 240; //TODO: floats are huge, same as above with 48e6 and 100k
 
   if (baud < 0)
     baud = 0;
   else if (baud > 255)
     baud = 255;
 
-  //freq = (float)F_CPU / (2.0 * (5.0 + baud) + (float)F_CPU * T_RISE);
+  freq = (float)F_CPU / (2.0 * (5.0 + baud) + (float)F_CPU * T_RISE);
 
   PM->APBCMASK.reg |= I2C_SERCOM_APBCMASK;
 
@@ -63,7 +63,7 @@ int i2c_init(int freq)
   while (I2C_SERCOM->I2CM.SYNCBUSY.reg);
 
   I2C_SERCOM->I2CM.CTRLA.reg = SERCOM_I2CM_CTRLA_MODE_I2C_MASTER |
-      SERCOM_I2CM_CTRLA_SDAHOLD(3);
+      SERCOM_I2CM_CTRLA_SDAHOLD(2);
   I2C_SERCOM->I2CM.CTRLA.reg |= SERCOM_I2CM_CTRLA_ENABLE;
   while (I2C_SERCOM->I2CM.SYNCBUSY.reg);
 
@@ -176,33 +176,3 @@ bool i2c_busy(int addr)
 
   return busy;
 }
-
-//-----------------------------------------------------------------------------
-void i2c_pins(int mask, int value)
-{
-  if (mask & I2C_PINS_SDA)
-  {
-    HAL_GPIO_SDA_out();
-    HAL_GPIO_SDA_write(value & I2C_PINS_SDA);
-  }
-  else
-  {
-    HAL_GPIO_SDA_in();
-    HAL_GPIO_SDA_clr();
-  }
-
-  if (mask & I2C_PINS_SCL)
-  {
-    HAL_GPIO_SCL_out();
-    HAL_GPIO_SCL_write(value & I2C_PINS_SCL);
-  }
-  else
-  {
-    HAL_GPIO_SCL_in();
-    HAL_GPIO_SCL_clr();
-  }
-
-  HAL_GPIO_SDA_pmuxdis();
-  HAL_GPIO_SCL_pmuxdis();
-}
-

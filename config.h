@@ -3,7 +3,11 @@
 
 #include <stdint.h>
 
-typedef struct config_tag {
+#define EEP_ADDR(addr)	0b10100000 | (((addr>>8) & 0b111)<<1)
+
+typedef struct PACK {
+	uint8_t version;
+
 	uint8_t debug;
 
 	uint8_t debouncems;
@@ -18,10 +22,13 @@ typedef struct config_tag {
 	uint8_t scrollswapxy;
 
 	uint8_t tp_sensitivity;
-} config_type;
+} config_t;
 
-extern config_type config;
+extern config_t config;
 
 void config_init(void);
+uint8_t config_check_version(void);
+uint8_t config_read_eeprom(void);
+uint8_t config_write_eeprom(void);
 
 #endif // _CONFIG_H_

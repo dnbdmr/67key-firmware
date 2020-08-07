@@ -43,6 +43,7 @@ SRCS += \
   ../spi_master.c \
   ../trackpoint.c \
   ../config.c \
+  ../i2c_master.c \
   ../matrix.c \
   ../keymap.c
 
