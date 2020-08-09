@@ -56,13 +56,7 @@ void SysTick_Handler(void)
 
 uint32_t millis(void)
 {
-	uint32_t m;
-	__disable_irq();
-	__DMB();
-	m = msticks;
-	__enable_irq();
-	__DMB();
-	return m;
+	return msticks;
 }
 
 void delay_us(uint32_t us)
