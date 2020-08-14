@@ -30,13 +30,13 @@ void config_init(void)
 	i2c_init(400000);
 
 	// Load from eeprom if version is the same.
-	if (config_check_version() == config_defaults.version)
+	if (config_check_eep_version() == config_defaults.version)
 		config_read_eeprom();
 	else
 		memcpy(&config, &config_defaults, sizeof(config_t));
 }
 
-uint8_t config_check_version(void)
+uint8_t config_check_eep_version(void)
 {
 	uint8_t byte;
 
@@ -51,6 +51,16 @@ uint8_t config_check_version(void)
 		return 0; // Read failed, return invalid version
 	i2c_stop();
 	return byte;
+}
+
+uint8_t config_check_ram_version(void)
+{
+	return config.version;
+}
+
+uint8_t config_check_default_version(void)
+{
+	return config_defaults.version;
 }
 
 // Read config from eeprom, return true on success

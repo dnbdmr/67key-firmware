@@ -444,8 +444,12 @@ int main(void)
 				uint32_t sens = atoi((const char *)&s[1]);
 				tp_setSensitivityFactor(sens);
 				tud_cdc_write_char('1');
+
 			} else if (s[0] == 'x') {
-				tud_cdc_write_char(config_check_version());
+				tud_cdc_write_char(config_check_eep_version());
+				tud_cdc_write_char('\n');
+			} else if (s[0] == 'c') {
+				tud_cdc_write_char(config_check_default_version());
 				tud_cdc_write_char('\n');
 			} else if (s[0] == 'o') {
 				if(!config_write_eeprom()) {

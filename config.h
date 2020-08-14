@@ -29,7 +29,9 @@ typedef struct PACK {
 extern config_t config; // Main config in RAM
 
 void config_init(void);
-uint8_t config_check_version(void);
+uint8_t config_check_eep_version(void);
+uint8_t config_check_ram_version(void);
+uint8_t config_check_default_version(void);
 bool config_read_eeprom(void);
 bool config_write_eeprom(void);
 void config_load_defaults(void);
