@@ -189,6 +189,9 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
 	{
 		// print initial message when connected
 		tud_cdc_write_str("67key config\n\n");
+
+		while (!tud_cdc_write_flush())
+			tud_task();
 	}
 
 	//Reset into bootloader when baud is 1200 and dtr unasserted
@@ -224,7 +227,8 @@ uint8_t cdc_task(char line[], uint8_t max)
 			else // Reset count if over max length
 				pos = 0;
 		}
-		tud_cdc_write_flush(); // Freeze without this
+		while (!tud_cdc_write_flush())
+			tud_task();
 	}
 
 
@@ -273,21 +277,21 @@ void hid_task(void)
 		}
 
 		if (config.debug) {
-			while (tud_cdc_write_available() < 30) {
-				tud_cdc_write_flush();
-				tud_task();
-			}
-
 			if ( mousekeys ) {
-				tud_cdc_write_str("\nmousekeys: 0b");
+				tud_cdc_write_str("mousekeys: 0b");
 				cdc_write_num(mousekeys, 2);
+				tud_cdc_write_char('\n');
 			}
 			if ( tpdata.x || tpdata.y ) {
-				tud_cdc_write_str("\nmouse x: ");
+				tud_cdc_write_str("mouse x: ");
 				cdc_write_num(tpdata.x, 10);
 				tud_cdc_write_str("\nmouse y: ");
 				cdc_write_num(tpdata.y, 10);
+				tud_cdc_write_char('\n');
 			}
+
+			while (!tud_cdc_write_flush())
+				tud_task();
 		}
 
 		static uint8_t middle_last = 0;
@@ -349,11 +353,7 @@ void hid_task(void)
 		read_modifiers(&modifiers);
 
 		if (config.debug) {
-			while (tud_cdc_write_available() < 30) {
-				tud_cdc_write_flush();
-				tud_task();
-			}
-			tud_cdc_write_str("\nMods: ");
+			tud_cdc_write_str("Mods: ");
 			cdc_write_num(modifiers, 2);
 			tud_cdc_write_str("\nCodes:");
 			for(uint8_t i = 0; i < 6; i++) {
@@ -361,7 +361,10 @@ void hid_task(void)
 				cdc_write_num(keycode[i], 10);
 			}
 			tud_cdc_write_char('\n');
-		}
+
+			while (!tud_cdc_write_flush())
+				tud_task();
+			}
 
 		tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
 	}
