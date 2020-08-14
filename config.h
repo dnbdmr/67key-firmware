@@ -2,6 +2,7 @@
 #define _CONFIG_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define EEP_ADDR(addr)	0b10100000 | (((addr>>8) & 0b111)<<1)
 
@@ -25,12 +26,12 @@ typedef struct PACK {
 	uint8_t tp_sensitivity;
 } config_t;
 
-extern config_t config;
+extern config_t config; // Main config in RAM
 
 void config_init(void);
 uint8_t config_check_version(void);
-uint8_t config_read_eeprom(void);
-uint8_t config_write_eeprom(void);
+bool config_read_eeprom(void);
+bool config_write_eeprom(void);
 void config_load_defaults(void);
 
 #endif // _CONFIG_H_

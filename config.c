@@ -3,9 +3,9 @@
 #include "i2c_master.h"
 #include "tusb.h"
 
-config_t config;
+config_t config; // Main config in RAM
 
-const config_t config_defaults = {
+const config_t config_defaults = { // Defaults in Flash
 	.version = 'B',
 
 	.debug = 0,
@@ -45,55 +45,72 @@ uint8_t config_check_version(void)
 	i2c_write_byte(0x0);
 	
 	// Repated start to stay in read mode
-	i2c_start(EEP_ADDR(0x0) | I2C_TRANSFER_READ);
-	i2c_read_byte(&byte, true);
+	if (!i2c_start(EEP_ADDR(0x0) | I2C_TRANSFER_READ))
+		return 0; // Start failed, return invalid version
+	if (!i2c_read_byte(&byte, true))
+		return 0; // Read failed, return invalid version
 	i2c_stop();
 	return byte;
 }
 
-uint8_t config_read_eeprom(void)
+// Read config from eeprom, return true on success
+bool config_read_eeprom(void)
 {
 	uint8_t *cfgptr = (uint8_t *)&config;
 	uint32_t len = sizeof(config_t);
 
 	// Reset address to zero
-	i2c_start(EEP_ADDR(0x0) | I2C_TRANSFER_WRITE);
-	i2c_write_byte(0x0);
+	if (!i2c_start(EEP_ADDR(0x0) | I2C_TRANSFER_WRITE))
+		return false;
+	if (!i2c_write_byte(0x0))
+		return false;
 
 	// Repeated start to stay in read mode
 	i2c_start(EEP_ADDR(0x0) | I2C_TRANSFER_READ);
 	while (len-- > 1) {
-		i2c_read_byte(cfgptr++, false);
+		if(!i2c_read_byte(cfgptr++, false)) { // Read bytes with ack
+			config_load_defaults(); // Read failed, load defaults
+			return false;
+		}
 	}
-	i2c_read_byte(cfgptr, true);
+	if (!i2c_read_byte(cfgptr, true)) {	// Read last byte, and nak
+		config_load_defaults();	// Read failed, load defaults
+		return false;
+	}
 	i2c_stop();
 
-	return 1; //TODO: add checks, bools?
+	return true; // Got to stop, success!
 }
 
-uint8_t config_write_eeprom(void)
+// Write config to eeprom, return true on success
+bool config_write_eeprom(void)
 {
 	uint32_t eepaddr = 0;
 	uint8_t *cfgptr = (uint8_t *)&config;
 	uint32_t len = sizeof(config_t);
 
+	// Repeatedly write 16 byte eeprom pages
 	while (eepaddr < len) {
-		i2c_start(EEP_ADDR(eepaddr) | I2C_TRANSFER_WRITE);
-		i2c_write_byte((eepaddr & ~0x7) & 0xff);
+		if (!i2c_start(EEP_ADDR(eepaddr) | I2C_TRANSFER_WRITE)) // Write device addr and first address byte
+			return false;
+		if (!i2c_write_byte((eepaddr & ~0x7) & 0xff)) // Write second address byte
+			return false;
 
 		for (uint8_t i = 0; i < 16; i++) {
 			if (eepaddr < len)
 				eepaddr++;
-			else
+			else // Reached end of config
 				break;
 
-			i2c_write_byte(*cfgptr++);
+			if(!i2c_write_byte(*cfgptr++))
+				return false; // Write failed
 		}
 		i2c_stop();
 
-		while (i2c_busy(EEP_ADDR(eepaddr)));
+		while (i2c_busy(EEP_ADDR(eepaddr))); // Wait for page write
 	}
-	return 1;
+
+	return true;
 }
 
 void config_load_defaults(void)

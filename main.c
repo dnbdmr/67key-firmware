@@ -445,15 +445,29 @@ int main(void)
 				tp_setSensitivityFactor(sens);
 				tud_cdc_write_char('1');
 			} else if (s[0] == 'x') {
-				cdc_write_num(config_check_version(), 10);
+				tud_cdc_write_char(config_check_version());
 				tud_cdc_write_char('\n');
 			} else if (s[0] == 'o') {
-				config_write_eeprom();
+				if(!config_write_eeprom()) {
+					tud_cdc_write_str("0\n");
+				}
+				else {
+					tud_cdc_write_str("1\n");
+				}
 			} else if (s[0] == 'i') {
-				config_read_eeprom();
+				if (!config_read_eeprom()) {
+					tud_cdc_write_str("0\n");
+				}
+				else {
+					tud_cdc_write_str("1\n");
+				}
 			} else if (s[0] == 'y') {
 				config_load_defaults();
+				tud_cdc_write_str("1\n");
 			}
+
+			while (!tud_cdc_write_flush())
+				tud_task();
 		}
 	}
 
