@@ -13,7 +13,8 @@ tud\_descriptor\_string\_cb
 - [ ] Turn off unused clocks? APB ADC. Whatever was started by uf2
 - [ ] Figure out clean way to have keys do things outside of keymap
 - [ ] Set up Fn lock
-- [ ] limit scrolling to 1 at a time
+- [ ] Make menu/help, move to config.c
+- [x] limit scrolling to 1 at a time.
 - [x] Check speedup of inlining millis(). Doesn't reallly work with externs.
   Cleared the dmb/irq around returning msticks, increased 108k->112kHz.
 - [x] Implement debounce? Does happen occasionally.

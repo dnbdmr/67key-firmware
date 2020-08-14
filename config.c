@@ -3,8 +3,10 @@
 #include "i2c_master.h"
 #include "tusb.h"
 
-config_t config = {
-	.version = 'A',
+config_t config;
+
+const config_t config_defaults = {
+	.version = 'B',
 
 	.debug = 0,
 
@@ -15,9 +17,10 @@ config_t config = {
 	.scaley = -1,
 	.swapxy = 1,
 
-	.scrollscalex = -2,
-	.scrollscaley = 2,
+	.scrollscalex = -1,
+	.scrollscaley = 1,
 	.scrollswapxy = 1,
+	.scrolllim = 2,
 
 	.tp_sensitivity = 78
 };
@@ -26,10 +29,11 @@ void config_init(void)
 {
 	i2c_init(400000);
 
-	if (config_check_version() == config.version)
+	// Load from eeprom if version is the same.
+	if (config_check_version() == config_defaults.version)
 		config_read_eeprom();
 	else
-		return;
+		memcpy(&config, &config_defaults, sizeof(config_t));
 }
 
 uint8_t config_check_version(void)
@@ -90,4 +94,9 @@ uint8_t config_write_eeprom(void)
 		while (i2c_busy(EEP_ADDR(eepaddr)));
 	}
 	return 1;
+}
+
+void config_load_defaults(void)
+{
+	memcpy(&config, &config_defaults, sizeof(config_t));
 }

@@ -20,6 +20,7 @@ typedef struct PACK {
 	int8_t scrollscalex;
 	int8_t scrollscaley;
 	uint8_t scrollswapxy;
+	uint8_t scrolllim;
 
 	uint8_t tp_sensitivity;
 } config_t;
@@ -30,5 +31,6 @@ void config_init(void);
 uint8_t config_check_version(void);
 uint8_t config_read_eeprom(void);
 uint8_t config_write_eeprom(void);
+void config_load_defaults(void);
 
 #endif // _CONFIG_H_

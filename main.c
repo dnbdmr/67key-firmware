@@ -293,6 +293,16 @@ void hid_task(void)
 		static uint8_t middle_last = 0;
 		static uint8_t middle_move = 0;
 		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed and movement
+			if (tpdata.x > config.scrolllim)
+				tpdata.x = 1;
+			else if (tpdata.x < -1 * config.scrolllim)
+				tpdata.x = -1;
+
+			if (tpdata.y > config.scrolllim)
+				tpdata.y = 1;
+			else if (tpdata.y < -1 * config.scrolllim)
+				tpdata.y = -1;
+
 			if (config.scrollswapxy)
 				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.x/config.scrollscaley, tpdata.y/config.scrollscalex);
 			else
@@ -441,6 +451,8 @@ int main(void)
 				config_write_eeprom();
 			} else if (s[0] == 'i') {
 				config_read_eeprom();
+			} else if (s[0] == 'y') {
+				config_load_defaults();
 			}
 		}
 	}
