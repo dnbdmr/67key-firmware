@@ -177,20 +177,23 @@ uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] =
 	}
 };
 
-void read_keys(uint8_t keycodes[])
+uint8_t read_keys(uint8_t keycodes[])
 {
 	uint8_t layer = FN_KEY ? 1 : 0;
 	uint8_t keycount = 0;
-	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
-		for (uint8_t j = 0; j < 8; j ++) {
-			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
+		if (!prev_keys[reg]) // Nothing pressed in this register
+			continue;
+
+		for (uint8_t j = 0; j < 8; j++) { // Check each bit
+			if ((prev_keys[reg] & (1 << j))) {
 				keycodes[keycount++] = keymap_keys[layer][reg][j];
 				if (keycount > 5)
-					return;
+					return keycount;
 			}
 		}
 	}
-	return;
+	return keycount;
 }
 
 uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] = 
@@ -363,17 +366,20 @@ uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] =
 	}
 };
 
-void read_modifiers(uint8_t *modifiers)
+uint8_t read_modifiers(uint8_t *modifiers)
 {
 	uint8_t layer = FN_KEY ? 1 : 0;;
-	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
-		for (uint8_t j = 0; j < 8; j++) {
-			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
+		if (!prev_keys[reg]) // Nothing pressed in this register, skip
+			continue;
+
+		for (uint8_t j = 0; j < 8; j++) { // Check each bit
+			if (prev_keys[reg] & (1 << j)) {
 				*modifiers |= keymap_modifiers[layer][reg][j];
 			}
 		}
 	}
-	return;
+	return *modifiers;
 }
 
 uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] = 
@@ -546,17 +552,20 @@ uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] =
 	}
 };
 
-void read_mousekeys(uint8_t *mousekeys, uint8_t *fn_key)
+uint8_t read_mousekeys(uint8_t *mousekeys, uint8_t *fn_key)
 {
 	*fn_key = FN_KEY ? 1 : 0;
-	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
-		for (uint8_t j = 0; j < 8; j++) {
-			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
+		if (!prev_keys[reg]) // Register empty, skip
+			continue;
+
+		for (uint8_t j = 0; j < 8; j++) { // Check each bit
+			if (prev_keys[reg] & (1 << j)) {
 				*mousekeys |= keymap_mousekeys[*fn_key][reg][j];
 			}
 		}
 	}
-	return;
+	return *mousekeys;
 }
 
 // TODO: should technically be uint16_t
@@ -730,16 +739,20 @@ uint8_t keymap_consumer[2][MATRIX_REG_COUNT][8] =
 	}
 };
 
-void read_consumer(uint16_t *button)
+uint16_t read_consumer(uint16_t *button)
 {
 	uint8_t fn_key = FN_KEY ? 1 : 0;
-	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) {
-		for (uint8_t j = 0; j < 8; j++) {
-			if (prev_keys[reg] && (prev_keys[reg] & (1 << j))) {
+	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
+		if (!prev_keys[reg]) // Register empty, skip
+			continue;
+
+		for (uint8_t j = 0; j < 8; j++) { // Check each bit
+			if (prev_keys[reg] & (1 << j)) {
 				*button = keymap_consumer[fn_key][reg][j];
-				if (*button) return;
+				if (*button)
+					return *button; // Stop at first find
 			}
 		}
 	}
-	return;
+	return *button;
 }

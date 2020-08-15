@@ -255,88 +255,87 @@ void cdc_write_num(int num, uint8_t radix)
 
 void hid_task(void)
 {
-	uint32_t const btn = shift_task();
+	const uint8_t btn = shift_task();
 
 	/*------------- Mouse -------------*/
 
 	if (btn || tp_reportAvailable()) 
 	{
-		// Make sure we can send
-		while( !tud_hid_ready() ) {
-			tud_task();
-		}
-
 		uint8_t mousekeys = 0;
 		uint8_t fn_key = 0;
 		struct tp_DataReport tpdata = {0,0,0};
 
-		read_mousekeys(&mousekeys, &fn_key);
-
-		if (tp_reportAvailable()) {
+		// Only try to send report if data is available
+		if (read_mousekeys(&mousekeys, &fn_key) || tp_reportAvailable()) {
 			tpdata = tp_getStreamReport();
-		}
 
-		if (config.debug) {
-			if ( mousekeys ) {
-				tud_cdc_write_str("mousekeys: 0b");
-				cdc_write_num(mousekeys, 2);
-				tud_cdc_write_char('\n');
-			}
-			if ( tpdata.x || tpdata.y ) {
-				tud_cdc_write_str("mouse x: ");
-				cdc_write_num(tpdata.x, 10);
-				tud_cdc_write_str("\nmouse y: ");
-				cdc_write_num(tpdata.y, 10);
-				tud_cdc_write_char('\n');
+			// Make sure we can send
+			while( !tud_hid_ready() ) {
+				tud_task();
 			}
 
-			while (!tud_cdc_write_flush())
-				tud_task();
-		}
+			if (config.debug) {
+				if ( mousekeys ) {
+					tud_cdc_write_str("mousekeys: 0b");
+					cdc_write_num(mousekeys, 2);
+					tud_cdc_write_char('\n');
+				}
+				if ( tpdata.x || tpdata.y ) {
+					tud_cdc_write_str("mouse x: ");
+					cdc_write_num(tpdata.x, 10);
+					tud_cdc_write_str("\nmouse y: ");
+					cdc_write_num(tpdata.y, 10);
+					tud_cdc_write_char('\n');
+				}
 
-		static uint8_t middle_last = 0;
-		static uint8_t middle_move = 0;
-		if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed and movement
-			if (tpdata.x > config.scrolllim)
-				tpdata.x = 1;
-			else if (tpdata.x < -1 * config.scrolllim)
-				tpdata.x = -1;
+				while (!tud_cdc_write_flush())
+					tud_task();
+			}
 
-			if (tpdata.y > config.scrolllim)
-				tpdata.y = 1;
-			else if (tpdata.y < -1 * config.scrolllim)
-				tpdata.y = -1;
+			static uint8_t middle_last = 0;
+			static uint8_t middle_move = 0;
+			if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && (tpdata.x || tpdata.y)) { // Scroll if middle mouse pressed and movement
+				if (tpdata.x > config.scrolllim)
+					tpdata.x = 1;
+				else if (tpdata.x < -1 * config.scrolllim)
+					tpdata.x = -1;
 
-			if (config.scrollswapxy)
-				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.x/config.scrollscaley, tpdata.y/config.scrollscalex);
-			else
-				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/config.scrollscaley, tpdata.x/config.scrollscalex);
-			middle_move = 1;
-			middle_last = 1;
+				if (tpdata.y > config.scrolllim)
+					tpdata.y = 1;
+				else if (tpdata.y < -1 * config.scrolllim)
+					tpdata.y = -1;
+
+				if (config.scrollswapxy)
+					tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.x/config.scrollscaley, tpdata.y/config.scrollscalex);
+				else
+					tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, tpdata.y/config.scrollscaley, tpdata.x/config.scrollscalex);
+				middle_move = 1;
+				middle_last = 1;
+			}
+			else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && !middle_last) { // send other button state if just pressed and no movement, wait for release
+				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
+				middle_last = 1;
+			}
+			else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && middle_move && middle_last) { // just moved, send other keys
+				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
+				middle_move = 0;
+				middle_last = 0;
+			}
+			else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && middle_last) { // didn't move, press and release key
+				tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys | MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
+				while( !tud_hid_ready() )
+					tud_task();
+				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
+				middle_last = 0;
+			}
+			else {	// regular move or Fn pressed for middle drag
+				if (config.swapxy)
+					tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.y/config.scalex, tpdata.x/config.scaley, 0, 0);
+				else
+					tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x/config.scalex, tpdata.y/config.scaley, 0, 0);
+			}
 		}
-		else if ((mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && !middle_last) { // send other button state if just pressed and no movement, wait for release
-			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys & ~MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
-			middle_last = 1;
-		}
-		else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && middle_move && middle_last) { // just moved, send other keys
-			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
-			middle_move = 0;
-			middle_last = 0;
-		}
-		else if (!(mousekeys & MOUSE_BUTTON_MIDDLE) && !fn_key && !middle_move && middle_last) { // didn't move, press and release key
-			tud_hid_mouse_report(REPORT_ID_MOUSE, (mousekeys | MOUSE_BUTTON_MIDDLE), 0, 0, 0, 0);
-			while( !tud_hid_ready() )
-				tud_task();
-			tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, 0, 0, 0, 0);
-			middle_last = 0;
-		}
-		else {	// regular move or Fn pressed for middle drag
-			if (config.swapxy)
-				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.y/config.scalex, tpdata.x/config.scaley, 0, 0);
-			else
-				tud_hid_mouse_report(REPORT_ID_MOUSE, mousekeys, tpdata.x/config.scalex, tpdata.y/config.scaley, 0, 0);
-		}
-	}
+	} //if (btn || tp_reportAvailable()) 
 
 	/*------------- Keyboard -------------*/
 
@@ -349,24 +348,25 @@ void hid_task(void)
 
 		uint8_t keycode[6] = { 0 };
 		uint8_t modifiers = 0;
-		read_keys(keycode);
-		read_modifiers(&modifiers);
 
-		if (config.debug) {
-			tud_cdc_write_str("Mods: ");
-			cdc_write_num(modifiers, 2);
-			tud_cdc_write_str("\nCodes:");
-			for(uint8_t i = 0; i < 6; i++) {
-				tud_cdc_write_char('\t');
-				cdc_write_num(keycode[i], 10);
+		// only send report if data available
+		if (read_keys(keycode) || read_modifiers(&modifiers)) {
+			tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
+
+			if (config.debug) {
+				tud_cdc_write_str("Mods: ");
+				cdc_write_num(modifiers, 2);
+				tud_cdc_write_str("\nCodes:");
+				for(uint8_t i = 0; i < 6; i++) {
+					tud_cdc_write_char('\t');
+					cdc_write_num(keycode[i], 10);
+				}
+				tud_cdc_write_char('\n');
+
+				while (!tud_cdc_write_flush())
+					tud_task();
 			}
-			tud_cdc_write_char('\n');
-
-			while (!tud_cdc_write_flush())
-				tud_task();
-			}
-
-		tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
+		}
 	}
 
 	/*------------- Consumer -------------*/
@@ -378,8 +378,17 @@ void hid_task(void)
 		}
 
 		uint16_t key = 0;
-		read_consumer(&key);
-		tud_hid_report(REPORT_ID_CONSUMER, &key, sizeof(key));
+		if (read_consumer(&key)) {
+			tud_hid_report(REPORT_ID_CONSUMER, &key, sizeof(key));
+			if (config.debug) {
+				tud_cdc_write_str("Consumer: 0x");
+				cdc_write_num(key, 16);
+				tud_cdc_write_char('\n');
+
+				while (!tud_cdc_write_flush())
+					tud_task();
+			}
+		}
 	}
 }
 
