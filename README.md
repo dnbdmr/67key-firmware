@@ -5,7 +5,6 @@
 - [ ] Finish keymap/layers
 - [ ] Make tp reset non blocking?
 - [ ] uf2: turn down brightness on rgbs
-- [ ] sends 3 reports whenever any key changes. problem?
 - [ ] Set serial number in descriptor? check uf2 source. add to
 tud\_descriptor\_string\_cb
 - [ ] Merge spi master and matrix?
@@ -14,6 +13,7 @@ tud\_descriptor\_string\_cb
 - [ ] Figure out clean way to have keys do things outside of keymap
 - [ ] Set up Fn lock
 - [ ] Make menu/help, move to config.c
+- [x] sends 3 reports whenever any key changes. problem?
 - [x] limit scrolling to 1 at a time.
 - [x] Check speedup of inlining millis(). Doesn't reallly work with externs.
   Cleared the dmb/irq around returning msticks, increased 108k->112kHz.

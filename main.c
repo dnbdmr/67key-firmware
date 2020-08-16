@@ -267,7 +267,8 @@ void hid_task(void)
 
 		// Only try to send report if data is available
 		if (read_mousekeys(&mousekeys, &fn_key) || tp_reportAvailable()) {
-			tpdata = tp_getStreamReport();
+			if (tp_reportAvailable())
+				tpdata = tp_getStreamReport();
 
 			// Make sure we can send
 			while( !tud_hid_ready() ) {
@@ -341,16 +342,19 @@ void hid_task(void)
 
 	if ( btn )
 	{
-		// Make sure we can send
-		while( !tud_hid_ready() ) {
-			tud_task();
-		}
-
 		uint8_t keycode[6] = { 0 };
 		uint8_t modifiers = 0;
+		uint8_t change = 0;
 
 		// only send report if data available
-		if (read_keys(keycode) || read_modifiers(&modifiers)) {
+		change |= read_keys(keycode); 
+		change |= read_modifiers(&modifiers);
+		if (change) {
+			// Make sure we can send
+			while( !tud_hid_ready() ) {
+				tud_task();
+			}
+
 			tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifiers, keycode);
 
 			if (config.debug) {
@@ -372,13 +376,13 @@ void hid_task(void)
 	/*------------- Consumer -------------*/
 
 	if ( btn ) {
-		// Make sure we can send
-		while( !tud_hid_ready() ) {
-			tud_task();
-		}
-
 		uint16_t key = 0;
 		if (read_consumer(&key)) {
+			// Make sure we can send
+			while( !tud_hid_ready() ) {
+				tud_task();
+			}
+
 			tud_hid_report(REPORT_ID_CONSUMER, &key, sizeof(key));
 			if (config.debug) {
 				tud_cdc_write_str("Consumer: 0x");

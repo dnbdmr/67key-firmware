@@ -7,6 +7,11 @@
 
 extern uint8_t prev_keys[MATRIX_REG_COUNT];
 
+static uint8_t prev_keys_keys[MATRIX_REG_COUNT] = { 0 };
+static uint8_t prev_keys_modifiers[MATRIX_REG_COUNT] = { 0 };
+static uint8_t prev_keys_mousekeys[MATRIX_REG_COUNT] = { 0 };
+static uint8_t prev_keys_consumer[MATRIX_REG_COUNT] = { 0 };
+
 uint8_t keymap_keys[2][MATRIX_REG_COUNT][8] = 
 {
 	{	//Layer 0
@@ -181,19 +186,24 @@ uint8_t read_keys(uint8_t keycodes[])
 {
 	uint8_t layer = FN_KEY ? 1 : 0;
 	uint8_t keycount = 0;
+	uint8_t change = 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
-		if (!prev_keys[reg]) // Nothing pressed in this register
-			continue;
-
 		for (uint8_t j = 0; j < 8; j++) { // Check each bit
-			if ((prev_keys[reg] & (1 << j))) {
-				keycodes[keycount++] = keymap_keys[layer][reg][j];
+			if ((prev_keys[reg] & (1 << j)) != (prev_keys_keys[reg] & (1 << j))) { // This bit changed, and
+				if (keymap_keys[layer][reg][j]) { // this bit is populated in keymap
+					change = 1; // report a change
+				}
+			}
+			if ((prev_keys[reg] & (1 << j)) && (keymap_keys[layer][reg][j])) { // If it was pressed and populated,
+				keycodes[keycount++] = keymap_keys[layer][reg][j]; // load it
 				if (keycount > 5)
-					return keycount;
+					return change;
 			}
 		}
+
+		prev_keys_keys[reg] = prev_keys[reg];
 	}
-	return keycount;
+	return change;
 }
 
 uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] = 
@@ -369,17 +379,22 @@ uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] =
 uint8_t read_modifiers(uint8_t *modifiers)
 {
 	uint8_t layer = FN_KEY ? 1 : 0;;
+	uint8_t change = 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
-		if (!prev_keys[reg]) // Nothing pressed in this register, skip
-			continue;
-
 		for (uint8_t j = 0; j < 8; j++) { // Check each bit
-			if (prev_keys[reg] & (1 << j)) {
-				*modifiers |= keymap_modifiers[layer][reg][j];
+			if ((prev_keys[reg] & (1 << j)) != (prev_keys_modifiers[reg] & (1 << j))) { // This bit changed, and
+				if (keymap_modifiers[layer][reg][j]) { // this bit is populated in keymap
+					change = 1;
+				}
+			}
+			if (prev_keys[reg] & (1 << j) && (keymap_modifiers[layer][reg][j])) { // If it was pressed and populated
+				*modifiers |= keymap_modifiers[layer][reg][j]; // load it
 			}
 		}
+
+		prev_keys_modifiers[reg] = prev_keys[reg];
 	}
-	return *modifiers;
+	return change;
 }
 
 uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] = 
@@ -555,17 +570,21 @@ uint8_t keymap_mousekeys[2][MATRIX_REG_COUNT][8] =
 uint8_t read_mousekeys(uint8_t *mousekeys, uint8_t *fn_key)
 {
 	*fn_key = FN_KEY ? 1 : 0;
+	uint8_t change = 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
-		if (!prev_keys[reg]) // Register empty, skip
-			continue;
-
 		for (uint8_t j = 0; j < 8; j++) { // Check each bit
-			if (prev_keys[reg] & (1 << j)) {
-				*mousekeys |= keymap_mousekeys[*fn_key][reg][j];
+			if ((prev_keys[reg] & (1 << j)) != (prev_keys_mousekeys[reg] & (1 << j))) { // This bit changed, and
+				if (keymap_mousekeys[*fn_key][reg][j]) { // this bit is populated in keymap
+					change = 1;
+				}
+			}
+			if (prev_keys[reg] & (1 << j) && (keymap_mousekeys[*fn_key][reg][j])) { // If it was pressed and populated,
+				*mousekeys |= keymap_mousekeys[*fn_key][reg][j]; // load it
 			}
 		}
+		prev_keys_mousekeys[reg] = prev_keys[reg];
 	}
-	return *mousekeys;
+	return change;
 }
 
 // TODO: should technically be uint16_t
@@ -739,20 +758,22 @@ uint8_t keymap_consumer[2][MATRIX_REG_COUNT][8] =
 	}
 };
 
-uint16_t read_consumer(uint16_t *button)
+uint8_t read_consumer(uint16_t *button)
 {
 	uint8_t fn_key = FN_KEY ? 1 : 0;
+	uint8_t change = 0;
 	for (uint8_t reg = 0; reg < MATRIX_REG_COUNT; reg++) { // Check each register
-		if (!prev_keys[reg]) // Register empty, skip
-			continue;
-
 		for (uint8_t j = 0; j < 8; j++) { // Check each bit
-			if (prev_keys[reg] & (1 << j)) {
-				*button = keymap_consumer[fn_key][reg][j];
-				if (*button)
-					return *button; // Stop at first find
+			if ((prev_keys[reg] & (1 << j)) != (prev_keys_consumer[reg] & (1 << j))) { // This bit changed, and
+				if (keymap_consumer[fn_key][reg][j]) { // this bit is populated in keymap
+					change = 1;
+				}
+			}
+			if (prev_keys[reg] & (1 << j) && (keymap_consumer[fn_key][reg][j])) { // If it was pressed and populated,
+				*button = keymap_consumer[fn_key][reg][j]; // load it
 			}
 		}
+		prev_keys_consumer[reg] = prev_keys[reg];
 	}
-	return *button;
+	return change;
 }
