@@ -461,6 +461,7 @@ int main(void)
 			} else if (s[0] == 'd') {
 				config.debug = !config.debug;
 				cdc_write_num(config.debug, 10);
+				tud_cdc_write_char('\n');
 			} else if (s[0] == 'r') {
 				cdc_write_num(tp_readFromRamLocation(0x4a), 10);
 				tud_cdc_write_char('\n');
@@ -492,6 +493,16 @@ int main(void)
 			} else if (s[0] == 'y') {
 				config_load_defaults();
 				tud_cdc_write_str("1\n");
+			} else if (s[0] == 'l') {
+				if (s[1] == 'r') {
+					cdc_write_num(config.scrolllim, 10);
+					tud_cdc_write_char('\n');
+				}
+				else if (s[1] == 'w') {
+					uint8_t i = atoi((const char *)&s[2]);
+					config.scrolllim = i;
+					tud_cdc_write_str("1\n");
+				}
 			}
 
 			while (!tud_cdc_write_flush())
