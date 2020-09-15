@@ -1,7 +1,9 @@
 ##############################################################################
 BUILD = build
 BIN = 67key
+BOSSA = ~/.arduino15/packages/arduino/tools/bossac/1.7.0/bossac
 PORT = /dev/serial/by-id/usb-DNBDMR_67keyboard_123456-if00
+BOOTPORT = /dev/serial/by-id/usb-DNBDMR_67_Keyboard_Boot_C3CA2B4750525151332E3120FF19240E-if00
 ##############################################################################
 .PHONY: all directory clean size
 
@@ -82,7 +84,7 @@ uf2: $(BUILD)/$(BIN).hex
 bossa: $(BUILD)/$(BIN).bin
 	@echo BOSSA @^
 	./force_reset.py --caterina $(PORT)
-	~/.arduino15/packages/arduino/tools/bossac/1.7.0/bossac -e -w -v -R $^
+	$(BOSSA) -e -w -v -R -U true -p $(BOOTPORT) $^
 
 directory:
 	@mkdir -p $(BUILD)
