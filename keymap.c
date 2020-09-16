@@ -3,7 +3,7 @@
 #include "config.h"
 #include "tusb.h"
 
-#define FN_KEY	prev_keys[1] & (1<<6)
+#define FN_KEY	prev_keys[1] & (1<<5)
 
 extern uint8_t prev_keys[MATRIX_REG_COUNT];
 
@@ -224,8 +224,8 @@ uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			KEYBOARD_MODIFIER_RIGHTALT,
 			0,
+			KEYBOARD_MODIFIER_RIGHTGUI,
 			KEYBOARD_MODIFIER_RIGHTCTRL },
 		{	// Register 2
 			0,
@@ -307,8 +307,8 @@ uint8_t keymap_modifiers[2][MATRIX_REG_COUNT][8] =
 			0,
 			0,
 			0,
-			KEYBOARD_MODIFIER_RIGHTALT,
 			0,
+			KEYBOARD_MODIFIER_RIGHTGUI,
 			KEYBOARD_MODIFIER_RIGHTCTRL },
 		{	// Register 2
 			0,
