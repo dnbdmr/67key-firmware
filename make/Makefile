@@ -81,6 +81,10 @@ uf2: $(BUILD)/$(BIN).hex
 	./force_reset.py --uf2 $(PORT)
 	./uf2conv.py $^
 
+disasm: $(BUILD)/$(BIN).elf
+	@echo DISASSEMBLE $^
+	arm-none-eabi-objdump -D -S $^ > $(BUILD)/$(BIN).lss
+
 bossa: $(BUILD)/$(BIN).bin
 	@echo BOSSA @^
 	./force_reset.py --caterina $(PORT)
