@@ -160,6 +160,8 @@ void tud_suspend_cb(bool remote_wakeup_en)
 	EIC->INTENSET.reg = EIC_INTENSET_EXTINT11; //enable spacebar interrupt
 	EIC->CONFIG[0].bit.SENSE4 = EIC_CONFIG_SENSE4_LOW_Val; //TP_CLK
 
+	delay_ms(2);
+
 	SysTick->CTRL &= ~(SysTick_CTRL_TICKINT_Msk); //disable systick interrupt
 	PM->SLEEP.reg |= PM_SLEEP_IDLE(2);	// Set idle
 	//SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;	// Set deep sleep, not working
@@ -248,6 +250,12 @@ void cdc_write_num(int num, uint8_t radix)
 	itoa(num, s, radix);
 	tud_cdc_write_str(s);
 }
+
+const char help_msg[] = \
+						"b [0-255]		board led brightness"\
+						"d			Enable debug output"\
+						"r			Read sensistivity from tp module"
+						"w [0-255]		Write sensitivity to tp module";
 
 //--------------------------------------------------------------------+
 // USB HID
