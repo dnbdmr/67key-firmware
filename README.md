@@ -6,13 +6,15 @@
 - [ ] Make tp reset non blocking?
 - [ ] uf2: turn down brightness on rgbs
 - [ ] Set serial number in descriptor? check uf2 source. add to
-tud\_descriptor\_string\_cb
+  tud\_descriptor\_string\_cb
 - [ ] Merge spi master and matrix?
 - [ ] Make force reset universal
 - [ ] Turn off unused clocks? APB ADC. Whatever was started by uf2
 - [ ] Figure out clean way to have keys do things outside of keymap
 - [ ] Set up Fn lock
-- [ ] Make menu/help, move to config.c
+- [ ] Make menu/help, move to config.c?
+- [ ] Intermittent wake up from sleep after putting computer to sleep. Doesn't
+  wake up computer.
 - [x] sends 3 reports whenever any key changes. problem?
 - [x] limit scrolling to 1 at a time.
 - [x] Check speedup of inlining millis(). Doesn't reallly work with externs.
