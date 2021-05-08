@@ -38,8 +38,8 @@
 //-----------------------------------------------------------------------------
 int i2c_init(int freq)
 {
-  int baud =((float)F_CPU / freq - (float)F_CPU * T_RISE - 10.0) / 2.0; // TODO: float adds ~14k
-  //int baud = 240; //TODO: floats are huge, same as above with 48e6 and 100k
+  //int baud =((float)F_CPU / freq - (float)F_CPU * T_RISE - 10.0) / 2.0; // TODO: float adds ~14k
+  int baud = 240; //TODO: floats are huge, same as above with 48e6 and 100k
 
   if (baud < 0)
     baud = 0;
