@@ -69,7 +69,7 @@ void rgb_init(void)
   rgbarray[0].red = 0x0;
   rgbarray[0].blue = 0x0;
   rgbarray[0].green = 0x0;
-  rgbarray[0].bright = 0x05;
+  rgbarray[0].bright = 0x01;
   rgbarray[1].red = 0xFF;
   rgbarray[1].blue = 0x0;
   rgbarray[1].green = 0x00;
@@ -199,14 +199,14 @@ void led_task(void)
 
 	if ((cur_time - rgb0_time) >= 20) {
 		rgb0_time = cur_time;
-		if (rgb0_pos >= 172)
+		if (rgb0_pos >= 110)
 			rgb0_dir = 0;
-		if (rgb0_pos <= 72)
+		if (rgb0_pos <= 10)
 			rgb0_dir = 1;
 		if (rgb0_dir)
-			rgb0_pos+=4;
+			rgb0_pos += 4;
 		else
-			rgb0_pos-=4;
+			rgb0_pos -= 4;
 		rgbarray[0].blue = gamma8[rgb0_pos];
 		rgb_update(rgbarray, RGB_NUM);
 	}
