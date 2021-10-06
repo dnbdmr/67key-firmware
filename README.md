@@ -1,4 +1,5 @@
 # 67 Key keyboard with trackpoint
+## ARCHIVED see https://github.com/dnbdmr/67key-keyboard
 
 ## TODO
 
